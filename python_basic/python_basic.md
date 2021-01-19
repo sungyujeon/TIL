@@ -40,7 +40,7 @@ jupyter notebook 단축키
 
 
 
-### 기초 문법(Syntax)
+## 기초 문법(Syntax)
 
 ##### 주석(comment)
 
@@ -102,9 +102,73 @@ False, None, True, and, as, assert, async, await, break, class, continue, def, d
 
 
 
-### 컨테이너(container)
+## 컨테이너(container)
 
 - 시퀀스(Sequence)형: ordered data
   - list, tuple, range, string
 - 비 시퀀스(Non-sequence)형: unordered data
   - set, dictionary
+
+
+
+## 제어문
+
+##### 조건문
+
+`if`문은 반드시 참/거짓을 판단할 수 있는 조건과 함께 사용이 되어야 함
+
+
+
+##### 조건표현식(a.k.a 삼항연산자)
+
+`true value if <조건식> else false_value`
+
+
+
+## 반복문
+
+##### while문
+
+```python
+while <조건식>
+	<코드 블럭>
+```
+
+##### for문
+
+시퀀스(string, tuple, list, range)나 다른 순회가능한 객체(iterable)의 요소 순환
+
+###### enumerate
+
+- 열거 객체를 반환
+
+- iterable은 시퀀스, 이터레이터 또는 이터레이션을 지원하는 다른 객체여야 함
+
+- enumerate()에 의해 반환된 이터레이터의 `__next__()` 메서드는
+
+  iterable을 이터레이션 해서 얻어지는 값을 포함하는 튜플을 반환
+
+- default: `enumerate(iterable, start=0)`
+
+
+
+##### 반복제어(break, continue, for-else)
+
+`break` 반복문 종료
+
+`continue` continue 이후의 코드 실행하지 않고 반복 수행
+
+`for-else` break문으로 종료 시 실행되지 않음
+
+
+
+##### pass
+
+아무것도 하지 않음.
+
+단순히 자리를 채우는 용도로 사용
+
+
+
+
+
