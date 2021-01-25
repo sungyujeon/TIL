@@ -300,11 +300,32 @@ raise <에러>('메시지')
 
   
 
-  
 
 
 
+## String Function
+
+#### `.find(x)`
+
+x의 첫번째 위치 인덱스를 반환. 없으면 `-1` 반환
+
+#### `.index(x)`
+
+x의 첫번째 위치 인덱스를 반환. 없으면 오류 발생
 
 
 
+#### `replace(old, new[, count])`
+
+#### `.strip([chars])`
+
+#### `split()`
+
+#### `'separator'.join(iterable)`
+
+#### `.capitalize()`, ` .title()`,  `.upper()`
+
+
+
+list의 깊은 복사, 얕은 복사 공부
 
