@@ -305,27 +305,132 @@ raise <에러>('메시지')
 
 ## String Function
 
-#### `.find(x)`
+#### `.find(x [, start[, end]])`
 
-x의 첫번째 위치 인덱스를 반환. 없으면 `-1` 반환
+부분 문자열 x의 첫번째 위치 인덱스를 반환. 없으면 `-1` 반환
 
-#### `.index(x)`
 
-x의 첫번째 위치 인덱스를 반환. 없으면 오류 발생
+
+#### `.index(x [, start[, end]])`
+
+부분 문자열 x의 첫번째 위치 인덱스를 반환. 없으면 오류(ValueError) 발생
 
 
 
 #### `replace(old, new[, count])`
 
+부분 문자열 old가 new로 치환된 문자열의 복사본을 반환, count 만큼만 변환
+
+
+
 #### `.strip([chars])`
 
-#### `split()`
+가장 바깥쪽의 선행 또는 후행 chars 인자 값들이 문자열에서 제거
+
+string 타입의 단어를 없애는 것이 아니라 chars의 개별 값들이 다른 문자를 만날 때까지 제거
+
+
+
+#### `split(sep=None, maxsplit = -1)`
+
+`sep`를 구분자 문자열로 나눈 단어들의 리스트를 반환
+
+maxsplit이 주어지면 최대 maxsplit 만큼 분할(따라서 len(list)는 maxsplit+1)
+
+
 
 #### `'separator'.join(iterable)`
 
-#### `.capitalize()`, ` .title()`,  `.upper()`
+iterable의 문자열을 이어 붙인 문자열을 반환
+
+iterable에 bytes 객체나 문자열이 아닌 값이 있으면 TypeError 발생
 
 
 
-list의 깊은 복사, 얕은 복사 공부
+#### `.capitalize()`, ` .title()`,  `.upper()`, `lower()`, `swapcase`
 
+capitalize() 앞글자를 대문자로 만들어 반환
+
+title() 어퍼스트로피나 공백 이후를 대문자로 만들어 반환
+
+upper() 모두 대문자로 반환
+
+lower() 모두 소문자로 반환
+
+swapcase() 대<->소문자로 변경하여 반환
+
+
+
+## List
+
+#### `.append(x)`
+
+리스트의 끝 항목에 x를 더함
+
+
+
+#### `.extend(iterable)`
+
+리스트의 끝에 iterable의 모든 요소를 덧붙여 확장
+
+
+
+#### .`insert(i, x)`
+
+i번째 index에 x를 삽입
+
+`a.append(len(a), x)` == `a.append(x)`
+
+
+
+#### `.remove(x)`
+
+x와 같은 첫번째 항목을 삭제
+
+x가 없으면 ValueError 발생
+
+
+
+#### `.pop(i)`
+
+index `i`의 값을 삭제하고, 그 항목을 반환
+
+default는 마지막 값을 삭제하고 반환
+
+
+
+#### `.clear()`
+
+리스트의 모든 항목을 삭제
+
+del a[:]와 같음
+
+
+
+#### `.index(x[, start[, end]])`
+
+x의 값이 있는 index 값을 반환, 없으면 ValueError 발생
+
+`a[start:end] `의 범위 내에서 x 값을 찾아 반환
+
+
+
+#### `.count(x)`
+
+x의 갯수를 반환
+
+
+
+#### `.sort(*, key=None, reverse=False)`
+
+리스트의 아이템들을 정렬
+
+arguments `key` `reverse` 설정 시 key를 기준으로, reverse할지 구분
+
+
+
+
+
+## Set
+
+> 변경 가능하고(mutable), 순서가 없고(unordered), 순회 가능한(iterable)
