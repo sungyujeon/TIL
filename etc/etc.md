@@ -20,6 +20,10 @@ https://www.boostcourse.org/cs112/joinLectures/41485
 
 해외: LeetCode HackerRank
 
+https://algorithm-visualizer.org 알고리즘 동작 구현
+
+
+
 
 
 
@@ -40,3 +44,22 @@ https://coding-groot.tistory.com/93
 
 
 
+## Github
+
+포트폴리오? github.io
+
+
+
+## PyPI(Python Package Index)
+
+License : [Choose an open source license](https://choosealicense.com/)
+
+
+
+## Debugging Level
+
+어떤 상황이 더 심각한 상황인지,
+
+이 디버깅이 어떤 상황인지
+
+ALL / DEBUG / INFO / WARN / ERROR / FATAL / OFF / TRACE
