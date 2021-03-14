@@ -61,9 +61,37 @@
 
 - 선택 정렬(Selection Sort)
 
+  - 주어진 자료들 중 가장 작은 값의 원소부터 차례대로 선택하여 위치를 교환하는 방식
+
+    ```python
+    def selection_sort(arr):
+      for i in range(len(arr)-1):
+        min = i
+        for j in range(i+1, len(arr)):
+          if a[min] > a[j]:
+            min = j
+          a[i], a[min] = a[min], a[i]
+    ```
+
+    `O(n**2)` 배열의 길이 n에 대하여 n만큼 최솟값을 찾아서 바꿈
+
+    
+
+
+
 - 퀵 정렬(Quick Sort)
-
 - 삽입 정렬(Insertion Sort)
-
 - 병합 정렬(Merge Sort)
+
+
+
+
+
+## DFS(Depth First Search)
+
+메모리에서 값이 어떻게 변하는지 항상 생각해보자
+
+
+
+## BFS(Breadth First Search)
 

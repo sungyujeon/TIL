@@ -151,19 +151,19 @@ dummy data: lorem + `tab`
 
 
 
-##### Animate.css
+##### https://animate.style/  애니메이션 api
 
-##### poiemaweb.com 웹프로그래밍 튜토리얼
+##### https://poiemaweb.com/ 웹프로그래밍 튜토리얼
 
-##### Can't Unsee 디자인 감각 테스트?
+##### https://cantunsee.space/ 디자인 감각 테스트
 
-##### codepip.com 게임으로 배우는 html, css
+##### https://codepip.com/ 게임으로 배우는 html, css
 
-##### flexboxfroggy.com/#ko flexbox 연습 사이트
+##### https://flexboxfroggy.com/#ko flexbox 연습 사이트
 
-##### flexboxdefense.com flexbox 연습 사이트
+##### http://www.flexboxdefense.com/ flexbox 연습 사이트
 
-##### css-tricks.com flexbox 연습 사이트
+##### https://css-tricks.com/ flexbox 연습 사이트
 
 ##### material design 부트스트랩 같은 사이트
 
