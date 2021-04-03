@@ -23,8 +23,8 @@
 
 ### log
 
-- `git log`
-- 현재 쌓여있는 commit history 출력
+- `git log` `git log --oneline`
+- 현재 쌓여있는 commit history 출력 / 한 줄 출력
 
 
 
@@ -65,3 +65,16 @@
   - `git push origin master`
 - commit history를 원격 저장소에 업로드
 
+
+
+### reset
+
+- `git reset <log>`
+- commit 기록을 없애고 과거로 돌아감
+
+
+
+### revert
+
+- `git revert <log>`
+- 
