@@ -114,3 +114,18 @@ model을 변경한 것ㅇ 기반한 새로운 마이그레이션(like 설계도)
 4. Field lookups
 
 - 
+
+
+
+## REST Framework
+
+##### Serialization(직렬화)
+
+- 데이터 구조나 객체 상태를 동일하거나 다른 컴퓨터 환경에 저장하고 나중에 재구성할 수 있는 포맷으로 변환하는 과정
+- 예를 들어 DRF의 Serializer는 Django의 Queryset 및 Model Instance와 같은 복잡한 데이터를, JSON, XML 등의 유형으로 쉽게 변환할 수 있는 Python 데이터 타입으로 만들어줌
+- DRF의 Serializer는 Django의 Form 및 ModelForm 클래스와 매우 유사하게 작동
+
+
+
+## CBV(Class Based View)
+
