@@ -1,5 +1,7 @@
 # React
 
+> 2021.06.04 ~ ing
+
 
 
 ## Setting
@@ -46,17 +48,11 @@
 
 - /public/index.html : root html 파일
 
-- /src/App.js : root js 파일, 모든 react cod에 대한 compile
+- /src/App.js : root js 파일, 모든 react code에 대한 compile
 
-- /src/index.css && /src/index.js : 모든 react code에 대한 css, js 파일 load
+- /src/index.css  &&  /src/index.js : 모든 react code에 대한 css, js 파일 load
 
-  /src/index,js에서 react, react-dom, ./index.css load
-
-1
-
-3) 
-
-
+  /src/index.js에서 react, react-dom, ./index.css, App.js load하여 root html인 /public/index.html에 render
 
 
 
@@ -75,21 +71,48 @@ class App extends react.Components {
 
 
 
+## Syntax
 
+- class
 
-2) 
+  class는 js에서 이미 사용하고 있는 예약어(Reserved Words)이므로 className 속성으로 설정
 
-
-
-
-
-
-
-- node.js 설치
-
-  ```bash
-  
+  ```react
+  <div className="container"></div>
   ```
 
-- 
+- data binding
 
+  - 중괄호({})를 사용하여 데이터를 바인딩
+  - 변수, 함수 등을 모두 바인딩 가능
+
+  ```react
+  function App() {
+    let posts = 'Posts'
+    function func() {
+      return 100
+    }
+    return (
+      <div className="App">
+        <h4>{ posts }</h4>
+        <h4>{ func() }</h4>
+        <img src={ logo } />
+      </div>
+    );
+  }
+  ```
+
+- style attribute
+
+  - js의 예약어 등 제한이 많기 때문에 중괄호 안에 key-value 쌍으로 명시
+
+  - '-' 등이 사용되는 스타일 속성은 camelCase로 작성
+
+    ```react
+    let myStyle = { color: 'blue', fontSize: '30px' }
+    <h4 style={ myStyle }>{ posts }</h4>
+    ```
+
+    
+
+  
