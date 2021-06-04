@@ -258,6 +258,8 @@
 
 
 
+
+
 ---
 
 > Basic Syntax
@@ -301,17 +303,363 @@
 
 - 문자열(String)
 
-  - 
+  ```js
+  'hello'.length  // 5
+  'hello'.charAt(0)  // 'h'
+  'hello, world'.replace('hello', 'goodbye')  // 'goodbye, world'
+  'hello'.toUpperCase()  // 'HELLO'
+  ```
 
 - 부울(Boolean)
+
+  - `false` false, 0, 빈 문자열(" "), NaN, null, undefined
+
+    ```js
+    Bollean('')  // false
+    Bollean(234)  // true
+    ```
+
+  - `&&`, `||`, `!`  지원
 
 - 기호(Symbol)
 
 - 객체(Object) - 함수(Function), 배열(Array), 날짜(Date), 정규식(RegExp)
 
+  > 아래 Object 참조
+
 - 널(Null)
+
+  - 값이 없음을 가리키는 '객체'타입의 객체
 
 - 정의되지 않음(Undefined)
 
+  - 할당되지 않은 변수
 
 
+
+## Operators(연산자)
+
+- `+` `-` `*` `/` `%` `=` `==` `===` `++` `--`
+
+- `==` vs `===`
+
+  ```js
+  123 == '123'  // true
+  123 === '123'  // false
+  ```
+
+
+
+## Modifier(제어자)
+
+- `if` `else if` `else`
+
+  ```js
+  let name = 'hong'
+  if (name == 'hong') {
+    name += 'kim'
+  } else if (name == 'kim') {
+    name += 'hong'
+  } else {
+    name += '!'
+  }
+  ```
+
+- `switch`
+
+  ```js
+  switch(action) {
+    case 'draw':
+      drawIt()
+      break
+    case 'eat':
+      eatIt()
+      break
+    default:
+      doNothing()
+  }
+  ```
+
+  
+
+- `while` `do-while`
+
+  ```js
+  while (true) {
+    // 무한루프
+  }
+  
+  do {
+    // 실행
+  } while (true)
+  ```
+
+- `for`
+
+  - `for ... in`  vs `for ... of`
+
+    - for in은 객체의 모든 열거가능한 속성에 대해 반복
+    - for of 컬렉션 전용 / 모든 객체 보다는 [Symbol.iterator] 속성이 있는 모든 컬렉션 요소에 대해 반복
+
+    ```js
+    Object.prototype.objCustom = function () {}
+    Array.prototype.arrCustom = function () {}
+    
+    let iterable = [3, 5, 7]
+    iterable.foo = 'hello'
+    
+    for (let i in iterable) {
+      console.log(i)  // 0, 1, 2, "foo", "arrCustom", "objCustom"
+    }
+    
+    for (let i of iterable) {
+      console.log(i)  // 3, 5, 7
+    }
+    ```
+
+  ```js
+  for (let i = 0; i < 5; i++) {
+    // 5번 반복
+  }
+  ```
+
+  ```js
+  for (let value of array) {
+    // value로 작업 실행
+  }
+  ```
+
+  ```js
+  for (let property in object) {
+    // object의 항목(property)로 작업 실행
+  }
+  ```
+
+- 삼항 연산자
+
+  ```js
+  let allowed = (age > 18) ? 'yes' : 'no'
+  ```
+
+
+
+## Object(객체)
+
+> JavaScript 객체는 이름-값 쌍(name-value pairs) 다음과 비슷함
+>
+> - Python : Dictionaries
+> - Perl, Ruby : Hashes
+> - C, C++ : Hash tables
+> - Java : HashMaps
+> - PHP : Associative arrays
+
+- 빈 객체 생성
+
+  ```js
+  const obj = new Object()
+  const obj = {}  // object literal
+  
+  const obj = {
+    name: 'Carrot',
+    'for': 'max',
+    details: {
+      color: 'orange',
+      size: 12
+    }
+  }
+  
+  obj.details.color  // orange
+  obj['details']['size']  // 12
+  ```
+
+- 객체 프로토타입(Person)과 프로토타입의 인스턴스(you) 생성
+
+  ```js
+  function Person(name, age) {
+    this.name = name
+    this.age = age
+  }
+  
+  const you = new Person('You', 24)
+  ```
+
+
+
+## Arrays
+
+```js
+const a = ['dog', 'cat', 'horse']
+a.length  // 3
+```
+
+- 존재하지 않는 배열 인덱스 참조 시 undefined
+
+  ```js
+  typeof(a[90]) // undefined
+  ```
+
+- forEach
+
+  ```js
+  ['dog', 'cat'].forEach( function (currentValue, index, array) {
+    // currentValue, array[index]로 작업 수행
+  })
+  ```
+
+- methods
+
+  ```js
+  a = ['dog', 'cat']
+  a.toString()  // 문자열 반환
+  a.concat(item1[, item2]...)  // item들이 덧붙여진 한 개의 배열 반환
+  a.join(sep)  // sep 인자로 구분해 합친 문자열 반환
+  a.pop()  // 배열의 마지막 항목 반환 및 제거
+  a.push(item)  // 배열 마지막에 추가
+  a.shift()  // 배열의 첫번째 항목 반환 및 제거
+  a.unshift()  // 배열의 앞에 추가
+  a.slice(start[, end])  // 배열의 일부분을 새배열로 반환
+  a.sort()  // 배열 정렬
+  a.reverse()  // 배열 역정렬
+  ```
+
+
+
+## Functions
+
+- 기본 구조
+
+  ```js
+  function add(x, y) {
+    const total = x + y
+    return total
+  }
+  // return이 없을 시 undefined
+  add(2, 3)  // 5
+  add(2, 3, 4)  // 매개변수 보다 많은 매개변수 전달 시 4는 무시됨
+  ```
+
+- arguments
+
+  ```js
+  // 매개변수를 함수 내부에서 접근할 수 있는 객체
+  function avg() {
+    let sum = 0
+    for (let i = 0, j = arguments.length; i < j; i++) {
+      sum += arguments[i]
+    }
+    return sum / arguments.length
+  }
+  
+  avg(2, 3, 4, 5)  // 3.5
+  ```
+
+- rest parameter
+
+  ```js
+  function avg(...args) {
+    let sum = 0
+    for (let value of args) {
+      sum += value
+    }
+    return sum / arr.length
+  }
+  ```
+
+  선언 위치 이후에 모든 인자를 저장 >> function avg(firstValue, ...args) {} 에서 첫번째 값은 firstValue에, 두번째부터 args에 전달됨
+
+- 익명 함수(Anonymous function)
+
+  ```js
+  const avg = function () {
+    // ...code
+  }
+  ```
+
+- ##### user-defined functions(사용자 정의 객체)
+
+  js에서는 function을 class로 사용
+
+  ```js
+  // 1
+  function Person(first, last) {
+    return {
+      first: first,
+      last: last
+    }
+  }
+  function personFullName(person) {
+    return person.first + ' ' + person.last
+  }
+  
+  
+  // 2
+  function Person(first, last) {
+    this.first = first
+    this.last = last
+    this.fullName = function () {
+      return this.first + ' ' + this.last 
+    }
+  }
+  const p = new Person('Simon', 'Willison')
+  
+  
+  // 3(객체 생성 시마다 fullName 함수 객체를 생성하여 낭비하는 것을 개선)
+  function personFullName() {
+    return this.first + ' ' + this.last
+  }
+  
+  function Person(first, last) {
+    this.first = first
+    this.last = last
+    this.fullName = personFullName
+  }
+  
+  // 4
+  // Person.prototype은 모든 Person 인스턴스들 간에 공유되는 객체
+  // Person 객체의 설정되지 않은 속성에 접근을 시도할 때마다,
+  // 대체용도로 Person.prototype에 그 속성이 있는지 찾음
+  function personFullName() {
+    return this.first + ' ' + this.last
+  }
+  
+  function Person(first, last) {
+    this.first = first
+    this.last = last
+  }
+  Person.prototype.fullName = function () {
+    return this.first + ' ' + this.last
+  }
+  ```
+
+  ```js
+  // built-in 객체의 prototype에도 추가 가능
+  const s = 'Simon'
+  s.reversed()  // TypeError on line 1: s.reversed is not a function
+  
+  String.prototype.reversed = function () {
+    let r = ''
+    for (let i = this.length - 1; i >= 0; i--) {
+      r += this[i]
+    }
+    return r
+  }
+  s.reversed()  // nomiS
+  ```
+
+- Inner functions(내장 함수)
+
+  지역 변수로 함수를 선언하여 name space를 늘리지 않고,  유지 보수에 용이하게 코드 구조를 가져갈 수 있음
+
+  ```js
+  function parentFunc () {
+    const a = 1
+    
+    function nestedFunc () {
+      const b = 4
+      return a + b
+    }
+    return nestedFunc() // 5
+  }
+  ```
+
+  
