@@ -13,10 +13,10 @@
 >    ```js
 >    const request = new XMLHttpRequest()
 >    const URL = 'https://jsonplaceholder.typicode.com/todos/1/'
->       
+>          
 >    request.open('GET', URL)
 >    request.send()
->       
+>          
 >    const todo = request.response
 >    console.log(todo)
 >    ```
@@ -33,12 +33,12 @@
 
 ## 배경
 
-- 2005년 Google Maps & Gmail 드엥 활용되는 기술을 설명하기 위해 AJAX라는 용어를 최초로 사용
+- 2005년 Google Maps & Gmail 등에 활용되는 기술을 설명하기 위해 AJAX라는 용어를 최초로 사용
 - AJAX는 특정 기술이 아닌 기존의 여러 기술을 사용하는 새로운 접근법을 설명하는 용어
   - 기존 기술을 잘 활용할 수 있는 방식으로 구성 및 재조합한 새로운 접근법
 - Google 사용 예시
   - Gmail : 메일의 전송 버튼을 눌러놓고 다른 페이지로 넘어가고 메일은 알아서 전송 처리됨
-  - Google Mas : 스크롤하는 행위 하나하나가 모두 요청이지만 페이지는 갱신되지 않음
+  - Google Maps : 스크롤하는 행위 하나하나가 모두 요청이지만 페이지는 갱신되지 않음
 
 
 
@@ -175,7 +175,3 @@ Event loop를 기반으로 하는 동시성 모델(Concurrency model)
   - 대기(pending) : 이행하거나 거부되지 않는 초기 상태
   - 이행(fulfilled) : 연산이 성공적으로 완료됨
   - 거부(rejected) : 연산이 실패함
-
-- 
-
-  
