@@ -231,6 +231,3 @@ dummy data: lorem + `tab`
 ##### https://css-tricks.com/ flexbox 연습 사이트
 
 ##### material design 부트스트랩 같은 사이트
-
-
-

@@ -301,6 +301,8 @@
 
 - 문자열(String)
 
+  - 
+
 - 부울(Boolean)
 
 - 기호(Symbol)
