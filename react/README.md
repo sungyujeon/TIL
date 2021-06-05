@@ -6,7 +6,28 @@
 
 ## Setting
 
-1) cdn install 방식
+1) npm 설치
+
+- 위 패키지를 통해 설치 시 port 3000을 통해 react node server 활성화 후 실행
+
+  ```bash
+  $ npx create-react-app {project-name}
+  $ npm start
+  ```
+
+- node.js package 모듈을 통해 react project 생성  >> react server start(node package를 통해 설치 시 gitingore, src 등 기본 폴더 구조 생성(node_modules, .gitingnore, README.md, package.json))
+
+- /public/index.html : root html 파일
+
+- /src/App.js : root js 파일, 모든 react code에 대한 compile
+
+- /src/index.css  &&  /src/index.js : 모든 react code에 대한 css, js 파일 load
+
+  /src/index.js에서 react, react-dom, ./index.css, App.js load하여 root html인 /public/index.html에 render
+
+
+
+2) cdn install 방식
 
  - React API, React DOM, Babel 설치 필요
 
@@ -33,27 +54,6 @@
    		ReactDOM.redner(<App/>, document,getElementById('root'))
      </script>
    </body>
-
-
-
-2) npm 설치
-
-- 위 패키지를 통해 설치 시 port 3000을 통해 react node server 활성화 후 실행
-
-  ```bash
-  $ npx create-react-app {project-name}
-  $ npm start
-  ```
-
-- node.js package 모듈을 통해 react project 생성  >> react server start(node package를 통해 설치 시 gitingore, src 등 기본 폴더 구조 생성(node_modules, .gitingnore, README.md, package.json))
-
-- /public/index.html : root html 파일
-
-- /src/App.js : root js 파일, 모든 react code에 대한 compile
-
-- /src/index.css  &&  /src/index.js : 모든 react code에 대한 css, js 파일 load
-
-  /src/index.js에서 react, react-dom, ./index.css, App.js load하여 root html인 /public/index.html에 render
 
 
 
@@ -91,6 +91,30 @@
 ```
 
 
+
+## Component
+
+##### functional component
+
+- 한 js 파일 내 function을 만들어 component화
+
+  ```react
+  function App() {
+    return (
+    	<ChildComponent/>
+    )
+  }
+  
+  function ChildComponent() {
+    return (
+    	<div>
+      	child component
+      </div>
+    )
+  }
+  ```
+
+  
 
 
 
