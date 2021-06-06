@@ -65,6 +65,10 @@
 >
 > state data의 변경이 일어날 때 해당 변수의 데이터가 모두 변경되도록 연동됨(state가 변경이 되면 HTML이 자동으로 rerendering)
 
+##### function component
+
+- useState React Hook은 class component에서는 사용할 수 없고, function component에서만 사용 가능
+
 - useState
 
   - useState 함수에 인자로 data를 전달하면, state 객체에 저장되는 변수와 해당 변수를 변경시키는 함수를 배열로 반환
@@ -75,11 +79,105 @@
   
   // score는 해당 state 데이터(0), setScores는 해당 데이터를 변경하는 함수
   // state data에는 문자, 숫자, 배열, 객체 등 모든 타입의 데이터를 할당할 수 있음
-  let [score, setScore] = useState(0)
-  
-  // score 1 증가
-  setScore(score++)
+  function Board() {
+    let [score, setScore] = useState(0)
+    let [titles, setTitles] = useState(['title1', 'title2',])
+  	
+    // 1) 값
+    // score 1 증가 함수
+    // state 객체를 직접 변경하지 않고 사본을 만들어 변경함()
+  	function increaseCount() {
+      let newCount = count + 1
+      setCount(newCount)
+    }
+    
+    // 2) 객체
+    // 깊은 복사를 통해 titles 사본을 만든 뒤 setTitles
+    function changeTitles() {
+      let newTitles = [...titles]
+      newTitles[0] = 'title0'
+      setTitles(newTitles)
+    }
+    
+    return (
+      // <></>: JSX fragment
+    	<>
+        <p>{ count }</p>
+        <p>{ titles }</p>
+        <button onClick={ increaseCount }>count 1 증가</button>
+        <button onClick={ changeTitles }>title 변경</button>
+      </>
+    )
+  }
   ```
+
+
+
+##### class component
+
+- state 생성 시 construnctor(생성자) 함수를 만들고 상속받은 생성자(super())도 함께 호출
+
+  ```react
+  class Board extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        key1: 'value1',
+      }
+    }
+    render() {
+      return (
+      	<>
+        	<p>{ this.state.key1 }</p>
+        </>
+      )
+    }
+  }
+  ```
+
+
+
+## Props
+
+> 하위 컴포넌트로 데이터를 전달하기 위한 객체
+
+- 기본 사용 방법
+  - component의 attribute는 전달할 component의 변수명이고, 값으로 해당 변수에 할당되는 값이 들어감
+  - 하위 컴포넌트에서는 props 객체에 담긴 해당 변수명으로 데이터 접근
+
+  ```react
+  <ChildComponent value={ sth } />
+  
+  // in ChildComponent
+  { this.props.value }
+  ```
+
+- 불변성(immutability)
+  - props 하는 이유는 하위 컴포넌트를 제어되는 컴포넌트(controlled component)로 만들기 위함
+
+  - 데이터는 값을 변경하기 위한 두 가지 방법이 있음. 1)값을 직접 변경하는 것, 2)원하는 변경 값을 가진 새로운 사본으로 데이터를 교체하는 것
+
+  - 이 때 기존 데이터(객체)를 직접 변경하지 않고 사본을 만들어 교체하는 것은 다음과 같은 장점을 가짐
+
+    - 복잡한 특징들을 단순하게 만듦. 기존 객체를 변경하지 않으므로 이전 이력을 유지하고 재사용 가능
+
+    - 변화를 감지함. 참조하고 있는 불변 객체가 이전 객체와 다르다면 객체는 변화하는 것으로 감지하기 때문.
+
+    - React에서 다시 rendering하는 시기를 결정함. react에서 순수 컴포넌트(pure component)를 만드는 데 도움을 주어 rerendering 할지 결정할 수 있게 함
+
+      > 모든 React component는 자신의 props를 다룰 때 반드시 순수 함수처럼 동작해야 함.
+      >
+      > ```js
+      > // pure function(입력값을 바꾸지 않고 항상 동일한 입력값에 대해 동일한 결과를 반환)
+      > function sum(a, b) {
+      >   return a + b
+      > }
+      > 
+      > // 입력값을 변경시키므로 순수함수가 아님
+      > function withdraw(account, amount) {
+      >   account.total -= amount
+      > }
+      > ```
 
 
 
@@ -94,7 +192,7 @@
 
 ## Component
 
-##### functional component
+##### function component
 
 - 한 js 파일 내 function을 만들어 component화
 
@@ -114,9 +212,35 @@
   }
   ```
 
+
+
+##### class component
+
+- React.Component를 상속 받고 render 함수를 만들어 return 값에 JSX 문법을 사용해 작성
+
+  ```react
+  class ParentComponent extends React.Component {
+    render() {
+      return (
+  			<ChildComponent value={ 'sth' } />
+      )
+    }
+  }
+  ```
+
   
 
+## Element
 
+- React 앱의 가장 작은 단위
+- brower DOM element와 달리 React element는 일반 객체(plain object)
+- React DOM은 React element와 일치하도록 DOM을 업데이트
+
+
+
+
+
+---
 
 ## Syntax
 

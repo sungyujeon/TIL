@@ -520,6 +520,7 @@ a.length  // 3
   a.slice(start[, end])  // 배열의 일부분을 새배열로 반환
   a.sort()  // 배열 정렬
   a.reverse()  // 배열 역정렬
+  a.slice()  // 얕은 복사
   ```
 
 
