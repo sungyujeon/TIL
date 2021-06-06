@@ -74,7 +74,7 @@
   - useState 함수에 인자로 data를 전달하면, state 객체에 저장되는 변수와 해당 변수를 변경시키는 함수를 배열로 반환
   - 아래 setScore() 함수를 실행하여 state data를 변경시킴(인자로 대체시킬 값을 전달)
 
-  ```react
+  ```jsx
   import { useState } from 'react'
   
   // score는 해당 state 데이터(0), setScores는 해당 데이터를 변경하는 함수
@@ -117,7 +117,7 @@
 
 - state 생성 시 construnctor(생성자) 함수를 만들고 상속받은 생성자(super())도 함께 호출
 
-  ```react
+  ```jsx
   class Board extends React.Component {
     constructor(props) {
       super(props)
@@ -145,7 +145,7 @@
   - component의 attribute는 전달할 component의 변수명이고, 값으로 해당 변수에 할당되는 값이 들어감
   - 하위 컴포넌트에서는 props 객체에 담긴 해당 변수명으로 데이터 접근
 
-  ```react
+  ```jsx
   <ChildComponent value={ sth } />
   
   // in ChildComponent
@@ -183,7 +183,7 @@
 
 ## Event Handler
 
-```react
+```jsx
 // attribute: event, value: { 실행될 함수 }
 <span onClick={ func }>button</span>
 ```
@@ -196,7 +196,7 @@
 
 - 한 js 파일 내 function을 만들어 component화
 
-  ```react
+  ```jsx
   function App() {
     return (
     	<ChildComponent/>
@@ -218,7 +218,7 @@
 
 - React.Component를 상속 받고 render 함수를 만들어 return 값에 JSX 문법을 사용해 작성
 
-  ```react
+  ```jsx
   class ParentComponent extends React.Component {
     render() {
       return (
@@ -248,7 +248,7 @@
 
   class는 js에서 이미 사용하고 있는 예약어(Reserved Words)이므로 className 속성으로 설정
 
-  ```react
+  ```jsx
   <div className="container"></div>
   ```
 
@@ -260,7 +260,7 @@
 
   - 변수, 함수 등을 모두 바인딩 가능
 
-    ```react
+    ```jsx
     function App() {
       let posts = 'Posts'
       function func() {
@@ -284,7 +284,7 @@
 
   - '-' 등이 사용되는 스타일 속성은 camelCase로 작성
 
-    ```react
+    ```jsx
     let myStyle = { color: 'blue', fontSize: '30px' }
     <h4 style={ myStyle }>{ posts }</h4>
     ```
