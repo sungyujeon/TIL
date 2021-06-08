@@ -51,7 +51,7 @@
    		  }
    		}
    
-   		ReactDOM.redner(<App/>, document,getElementById('root'))
+   		ReactDOM.render(<App/>, document,getElementById('root'))
      </script>
    </body>
 
@@ -181,6 +181,26 @@
 
 
 
+## State & Props Async
+
+- state(by setState), props가 비동기적으로 업데이트 될 수 있으므로 state를 계산 시에 해당 값에 의존해서는 안됨
+
+  ```jsx
+  // wrong
+  this.setState({
+    counter: this.state.counter + this.props.increment,
+  })
+  
+  // right
+  this.setState( (state, props) => {
+    counter: state.counter + props.increment
+  })
+  ```
+
+  
+
+
+
 ## Event Handler
 
 ```jsx
@@ -188,7 +208,15 @@
 <span onClick={ func }>button</span>
 ```
 
+- default event 방지
 
+  ```jsx
+  function handleClick(e) {
+    e.preventDefault()
+  }
+  ```
+
+  
 
 ## Component
 
@@ -222,13 +250,69 @@
   class ParentComponent extends React.Component {
     render() {
       return (
-  			<ChildComponent value={ 'sth' } />
+        <ChildComponent value={ 'sth' } />
       )
     }
   }
   ```
 
-  
+
+
+## Form
+
+> javascript 함수로 폼의 제출을 처리하고 사용자가 폼에 입력한 데이터에 접근하도록 하기 위해 Controlled Components(제어 컴포넌트)라는 기술을 활용
+
+##### Controlled Component
+
+- 일반적으로 React에서 변경 가능한 state 가 컴포넌트의 state 속성에 유지되고, setState()에 의해 업데이트됨
+- React state를 'single source of truth(신뢰 가능한 단일 출처)'로 만들어 두 요소를 결합 >> 폼을 렌더링하는 React 컴포넌트는 폼의 사용자 입력값 제어
+
+```jsx
+class NameForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: ''};
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    alert('A name was submitted: ' + this.state.value);
+    event.preventDefault();
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Name:
+          <input type="text" value={this.state.value} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+```
+
+- textarea, select [문서](https://ko.reactjs.org/docs/forms.html) 참조 
+
+
+
+## Lifecycle Methods
+
+- componentDidMount
+  - 해당 component output이 DOM에 렌더링된 후 실행
+
+- componentWillUnmount
+  - 해당 component에 의해 생성된 DOM이 삭제될 때 실행
+
+
 
 ## Element
 
