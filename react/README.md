@@ -57,6 +57,48 @@
 
 
 
+## Component
+
+##### function component
+
+- 한 js 파일 내 function을 만들어 component화
+
+  ```jsx
+  function App() {
+    return (
+    	<ChildComponent/>
+    )
+  }
+  
+  function ChildComponent() {
+    return (
+    	<div>
+      	child component
+      </div>
+    )
+  }
+  ```
+
+
+
+##### class component
+
+- React.Component를 상속 받고 render 함수를 만들어 return 값에 JSX 문법을 사용해 작성
+
+  ```jsx
+  class ParentComponent extends React.Component {
+    render() {
+      return (
+        <ChildComponent value={ 'sth' } />
+      )
+    }
+  }
+  ```
+
+
+
+
+
 ## State
 
 > 컴포넌트 안에서 관리되는 데이터를 저장하는 객체
@@ -218,46 +260,6 @@
 
   
 
-## Component
-
-##### function component
-
-- 한 js 파일 내 function을 만들어 component화
-
-  ```jsx
-  function App() {
-    return (
-    	<ChildComponent/>
-    )
-  }
-  
-  function ChildComponent() {
-    return (
-    	<div>
-      	child component
-      </div>
-    )
-  }
-  ```
-
-
-
-##### class component
-
-- React.Component를 상속 받고 render 함수를 만들어 return 값에 JSX 문법을 사용해 작성
-
-  ```jsx
-  class ParentComponent extends React.Component {
-    render() {
-      return (
-        <ChildComponent value={ 'sth' } />
-      )
-    }
-  }
-  ```
-
-
-
 ## Form
 
 > javascript 함수로 폼의 제출을 처리하고 사용자가 폼에 입력한 데이터에 접근하도록 하기 위해 Controlled Components(제어 컴포넌트)라는 기술을 활용
@@ -270,20 +272,20 @@
 ```jsx
 class NameForm extends React.Component {
   constructor(props) {
-    super(props);
-    this.state = {value: ''};
+    super(props)
+    this.state = {value: ''}
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
   }
 
   handleChange(event) {
-    this.setState({value: event.target.value});
+    this.setState({value: event.target.value})
   }
 
   handleSubmit(event) {
-    alert('A name was submitted: ' + this.state.value);
-    event.preventDefault();
+    alert('A name was submitted: ' + this.state.value)
+    event.preventDefault()
   }
 
   render() {
@@ -304,13 +306,80 @@ class NameForm extends React.Component {
 
 
 
-## Lifecycle Methods
+## Lifecycle Methods(API)
 
+##### function component
+
+- 
+
+
+
+##### class component
+
+​	![](../src/react/lifecycle_method.png)
+
+- componentWillMount
+  - DOM mount 전, rendering 전에 한 번 호출
 - componentDidMount
   - 해당 component output이 DOM에 렌더링된 후 실행
-
+  - DOM에 접근 가능
+  - 외부 API에서 data를 가져올 필요가 있는 경우 사용하면 좋음(이미 DOM을 mount한 상태에서 state를 변경해 re-rendering 하기 좋음)
+- shouldComponentUpdate
+  - re-rendering 여부를 결정
+  - props나 state가 변경되면 해당 함수를 호출한 뒤 render 함수 호출 여부를 결정
+  - 현재 props / state와 next props / next state를 비교하므로 re-rendering을 결정하는 것임
+- shouldComponentWillUpdate
+  - re-rendering이 이루어지기 직전에 호출
+  - 따라서 props / state와 무관하게 instance에서 update 전 처리해야 할 일을 실행
+  - shouldComponentUpdate 호출 뒤에 실행되며, re-rendering을 하지 않으면 실행되지 않음
+  - 이 lifecycle에서 setState를 하게 되면 무한루프에 빠짐
+- shouldComponentDidUpdate
+  - update가 완료되고 rendering 후 DOM에 mount 된 이후 즉시 호출
+  - DOM에 접근해 조작 가능(현재 props와 이전 props 비교 가능)
 - componentWillUnmount
-  - 해당 component에 의해 생성된 DOM이 삭제될 때 실행
+  - 해당 component에 의해 생성된 DOM이 삭제(unmount)되기 직전에 실행
+  
+
+```jsx
+class ClassComp extends React.Component {
+  constructor(props) {  // Constructor
+    super(props)
+    this.state = {value: ''}
+  }
+  
+  componentWillMount() {
+    console.log('componentWillMount')
+  }
+  
+  ComponentDidMount() {
+    console.log('componentDidMount')
+  }
+  
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log('shouldComponentUpdate')
+    return true // render를 호출해야 할 때 true, else false
+  }
+  
+  shouldComponentWillUpdate(nextProps, nextState) {
+    console.log('shouldComponentWillUpdate')
+  }
+  
+  shouldComponentDidUpdate(nextProps, nextState) {
+    console.log('shouldComponentDidUpdate')
+  }
+  
+  render() {
+    console.log('render')
+    return (
+    	<>
+      	<h1>Class Component</h1>
+      </>
+    )
+  }
+}
+```
+
+
 
 
 
@@ -375,4 +444,10 @@ class NameForm extends React.Component {
 
     
 
-  
+
+
+
+
+
+## etc
+
