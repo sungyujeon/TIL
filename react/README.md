@@ -99,13 +99,15 @@
 
 
 
-## State
+## State{#state}
 
 > 컴포넌트 안에서 관리되는 데이터를 저장하는 객체
 >
 > state data를 사용하는 쪽과 구현하는 쪽을 분리시키기 위함
 >
 > state data의 변경이 일어날 때 해당 변수의 데이터가 모두 변경되도록 연동됨(state가 변경이 되면 HTML이 자동으로 rerendering)
+>
+> 일반 변수는 함수가 끝날 때 사라지지만, state 변수는 React에 의해 유지
 
 ##### function component
 
@@ -306,15 +308,25 @@ class NameForm extends React.Component {
 
 
 
-## Lifecycle Methods(API)
+## Lifecycle Features
 
-##### function component
+##### function component(Hooks)
 
-- 
+> Hook은 최상위(at the top level)에서만 호출해야함. 반복문, 조건문, 중첩된 함수 내에서 사용 불가능
+>
+> react function component와 custom Hook에서만 사용 가능
+>
+> Hook은 항상 `use`로 시작해 React가 감지할 수 있게함
+
+- State Hook
+  - state hook에 대한 내용은 위 [State](#state) 참조
+- Effect Hook
+- Context Hook
+- Reducer Hook
 
 
 
-##### class component
+##### class component(lifecycle methods)
 
 ​	![](../src/react/lifecycle_method.png)
 
@@ -338,7 +350,6 @@ class NameForm extends React.Component {
   - DOM에 접근해 조작 가능(현재 props와 이전 props 비교 가능)
 - componentWillUnmount
   - 해당 component에 의해 생성된 DOM이 삭제(unmount)되기 직전에 실행
-  
 
 ```jsx
 class ClassComp extends React.Component {
@@ -390,6 +401,18 @@ class ClassComp extends React.Component {
 - React DOM은 React element와 일치하도록 DOM을 업데이트
 
 
+
+## React & Ajax
+
+```jsx
+function Component() {
+  return (
+  	<>
+    	
+    </>
+  )
+}
+```
 
 
 

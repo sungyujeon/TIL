@@ -1,3 +1,11 @@
+## IT Trend
+
+
+
+
+
+
+
 ## Computer Science 강의
 
 `coursera.org`  미 서부 대학 강의
@@ -357,7 +365,6 @@ https://stackshare.io/
 - SSAFY 교육생이기에 조심할 발언
   - 다른 싸피 지원자들과 중복되는 면접 답변이 많은 경우
   - SSAFY에서만 쓰는 용어를 사용하는 경우
-
 
 
 
