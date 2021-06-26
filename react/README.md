@@ -318,11 +318,63 @@ class NameForm extends React.Component {
 >
 > Hook은 항상 `use`로 시작해 React가 감지할 수 있게함
 
-- State Hook
-  - state hook에 대한 내용은 위 [State](#state) 참조
-- Effect Hook
-- Context Hook
-- Reducer Hook
+##### State Hook
+
+- state hook에 대한 내용은 위 [State](#state) 참조
+
+##### Effect Hook
+
+- side effect를 구현하기 위한 hook(class component lifecycle method의 componentDidMount, componentDidUpdate, componentWillUnmount가 합쳐진 것)
+- component가 rendering 된 이후에 어떤 일을 수행해야하는지를 표현(rendering 이후에 매번 수행되므로 effect를 수행하는 시점에 DOM이 업데이트 되었음을 보장)
+- useEffect를 컴포넌트 내부에 위치시켜 state 변수에 접근 가능
+
+```jsx
+import { useState, useEffect } from 'react'
+
+function Example() {
+  const [count, setCount] = useState(0)
+  
+  // clean-up이 필요 없는 effect
+  useEffect(() => {
+    document.title = `You clicked ${count} times`
+  })
+  
+  // clean-up이 필요한 effect
+  const [isOnline, setIsOnline] = useState(null)
+  useEffect(() => {
+    function handleStatusChange(status) {
+      setIsOnline(status.isOnline)
+    }
+    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange)
+    
+    // effect 이후 어떻게 정리(clean-up)할 것인지 표시
+    return function cleanup() {
+      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange)
+    }
+  })
+  
+  if (isOnline === null) {
+    return 'Loading...'
+  } else {
+    return isOnline ? 'Online' : 'Offline'
+  }
+  	
+  return (
+  	<>
+    	<p>You clicked {count} times</p>
+    	<button onClick={() => setCount(count+1)}>
+    		Click me
+    	</button>
+    </>
+  )
+}
+```
+
+
+
+##### Context Hook
+
+##### Reducer Hook
 
 
 

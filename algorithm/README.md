@@ -99,6 +99,12 @@
 
 
 
+## 이진 탐색(Binary Search)
+
+
+
+
+
 ## 백준 특강
 
 ##### 코딩 테스트에 자주 나오는 알고리즘
@@ -185,3 +191,27 @@ N과M 8문제, NM과 K 1
 
 
 
+## 공부 단계
+
+- 1단계: 프로그래밍 언어 문법 공부 Python/C++/Java
+- 2단계: 코드업에서 쉬운 문제부터 200문제 가량 풀기
+- 3단계: 유형별 알고리즘 이론과 핵심 문제 풀이
+- 4단계: 백준 온라인 저지에서 유형별 문제 20개 이상 풀기
+- 5단계: 백준 온라인 저지에서 삼성 SW 역량테스트 문제집 풀기
+- 6단계: 프로그래머스 카카오 문제집 풀기
+- 7단계: 주요 알고리즘 유형 복습하면서 백준 골드 1~5문제 마스터
+
+[함께 풀어 볼 문제]
+너비 우선 탐색(BFS)
+4연산: https://www.acmicpc.net/problem/14395
+환승: https://www.acmicpc.net/problem/5214
+로봇청소기: https://www.acmicpc.net/problem/14503
+결혼식: https://www.acmicpc.net/problem/5567
+깊이 우선 탐색(DFS)
+적록색약: https://www.acmicpc.net/problem/10026
+노드 사이의 거리: https://www.acmicpc.net/problem/1240
+트리: https://www.acmicpc.net/problem/4803
+다이나믹 프로그래밍
+극장 좌석: https://www.acmicpc.net/problem/2302
+퇴사: https://www.acmicpc.net/problem/14501
+케익 배달: https://www.acmicpc.net/problem/2159
