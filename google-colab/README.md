@@ -115,10 +115,140 @@ plt.show()
 
 
 
-## OpenCV API 사용한 이미지 처리
-
-
-
-
-
 ## face_recognition package 사용한 얼굴인식 기능 개발
+
+##### Google Drive 연동
+
+- execute 'open files from google drive snippet '
+
+#####  install face_recognition package
+
+- ```python
+  pip install face_recognition
+  ```
+
+
+
+##### face_recognition 기본 실행
+
+```python
+# 필요 library import
+import cv2, os
+import face_recognition as fr
+from IPython.display import image, display
+from matplotlib import pyplot as plt
+
+image_path = '/gdrive/My Drive/colab/src/people.jpg'
+image = fr.load_image_file(image_path)
+face_locations = fr.face_location(image)
+
+for (top, right, bottom, left) in face_locations:
+  cv2.rectangle(image, (left, top), (right, bottom), (0,255,0), 3)
+
+# 이미지 버퍼 출력
+plt.rcParams['figure_figsize'] = (16,16)
+plt.imshow(image)
+plt.show()
+```
+
+
+
+##### face_recognition 개별 인물 인식 및 encoding 값 기준 distance 비교
+
+- 개별 인물의 face_image를 인식하여 encoding
+
+- fr.face_distance()의 파라미터로 두 인물의 encoding data를 전달해 두 사진간의 distance를 확보
+
+- distance가 0.6 이상이면 타인, 미만이면 동일인으로 판단할 수 있음
+
+  (더 정확하게 하고 싶다면 기준점을 0.5로 낮춤)
+
+- 실행
+
+  - 개별 인물들의 이미지를 known_person_list에 추가
+
+    ```python
+    plt.rcParams['figure.figsize'] = (1,1)
+    
+    known_person_list = []
+    known_person_list = []
+    known_person_list.append(fr.load_image_file('/gdrive/My Drive/colab/src/person1.jpg'))
+    known_person_list.append(fr.load_image_file('/gdrive/My Drive/colab/src/person2.jpeg'))
+    known_person_list.append(fr.load_image_file('/gdrive/My Drive/colab/src/person3.jpg'))
+    known_person_list.append(fr.load_image_file('/gdrive/My Drive/colab/src/person4.jpg'))
+    known_person_list.append(fr.load_image_file('/gdrive/My Drive/colab/src/person5.jpeg'))
+    ```
+
+  - 얼굴을 인식하여 감지된 부분을 잘라낸 다음 known_face_list에 저장
+
+    ```python
+    known_face_list = []
+    for person in known_person_list:
+      
+      # 얼굴 좌표를 알아내서 잘라냄
+      top, right, bottom, left = fr.face_locations(person)[0]
+      face_image = person[top:bottom, left:right]
+    
+      # knwon_face_list에 잘라낸 face_image를 저장
+      known_face_list.append(face_image)
+    ```
+
+  - known_face_list에 저장된 얼굴 출력
+
+    ```python
+    # knwon_face_list에 저장된 얼굴 출력
+    for face in known_face_list:
+      plt.imshow(face)
+      plt.show()
+    ```
+
+  - 비교할 unknown image의 얼굴을 잘라내 출력
+
+    ```python
+    # 기존 리스트에 없는 새로운 파일 open
+    unknown_person = fr.load_image_file('/gdrive/My Drive/colab/src/unknown.jpg')
+    
+    # 얼굴 좌표를 알아내서 잘라냄
+    top, right, bottom, left = fr.face_locations(unknown_person)[0]
+    unknown_face = unknown_person[top:bottom, left:right]
+    
+    # unknown_face 라는 타이틀을 붙여서 표시
+    plt.title('unknown_face')
+    plt.imshow(unknown_face)
+    plt.show()
+    ```
+
+  - unknown_face encoding
+
+    ```python
+    # unknown_person_face를 인코딩
+    enc_unknown_face = fr.face_encodings(unknown_face)
+    
+    # 화면에 표시
+    plt.imshow(enc_unknown_face)
+    plt.show()
+    ```
+
+  - 등록된 얼굴리스트와 비교해 distance 수치와 함께 출력
+
+    ```python
+    #등록된 얼굴리스트를 비교
+    for face in known_face_list:
+    
+      # 등록된 얼굴을 128-dimensional face 인코딩
+      enc_known_face = fr.face_encodings(face)
+    
+      # 등록된 얼굴과 새로운 얼굴의 distance 얻기
+      distance = fr.face_distance(enc_known_face, enc_unknown_face[0])
+    
+      # distance 수치를 포함한 얼굴 출력
+      plt.title('distance: ' + str(distance))
+      plt.imshow(face)
+      plt.show()
+    ```
+
+
+
+##### 결과
+
+![](src/difference.png)
