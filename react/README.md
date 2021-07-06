@@ -8,7 +8,7 @@
 
 1) npm 설치
 
-- 위 패키지를 통해 설치 시 port 3000을 통해 react node server 활성화 후 실행
+- port 3000을 통해 react node server 활성화 후 실행
 
   ```bash
   $ npx create-react-app {project-name}
@@ -27,7 +27,16 @@
 
 
 
-2) cdn install 방식
+2) yarn 설치
+
+```bash
+$ yarn create react-app <프로젝트명>
+$ yarn start
+```
+
+
+
+3) cdn install 방식
 
  - React API, React DOM, Babel 설치 필요
 
@@ -222,6 +231,48 @@
       >   account.total -= amount
       > }
       > ```
+
+- defaultProps
+
+  - props 값을 따로 지정하지 않았을 때 보여 줄 기본값 설정
+
+  ```react
+  const MyComponent = props => {
+    return <div>{ props.name }</div>
+  }
+  
+  MyComponent.defaultProps = {
+    name: 'default name'
+  }
+  ```
+
+- propTypes를 통한 props 검증
+
+  - props의 type을 강제함
+  - 만약 props된 타입이 일치하지 않으면 console 창에 오류 메시지 출력
+  - 완전히 강제하기 위해서는 `isRequired` 사용
+  - PropTypes
+    - array, arrayOf, bool, func, number, object, string, symbol, node, instanceOf(class), oneOf(['value1', 'value2']), oneOfTypes([PropTypes.string, PropTypes.number]), objectOf, shape({ name: PropTypes.string, ...}), any
+  - 사용은 자유지만, 대규모 프로젝트에서 협업을 위해 특정 props가 어떤 타입인지 명시적으로 표시
+
+  ```react
+  import PropTypes from 'prop-types'
+  
+  const MyComponent = ({ name, childeren }) => {
+    return (...)
+  }
+  
+  MyComponent.propTypes = {
+    name: PropTypes.string,
+    number: PropTypes.number.isRequired
+  }
+  ```
+
+  
+
+
+
+
 
 
 
@@ -519,10 +570,71 @@ function Component() {
 
     
 
+- 조건부 렌더링
 
+  - 조건부 연산자(삼항 연산자)
 
+    ```jsx
+    {name === 'admin' ? (
+    	<h1>admin</h1>
+    ) : (
+    	<h2>not admin</h2>
+    )}
+    ```
 
+  - And 연산자
 
+    - null을 렌더링하게 하여 아무것도 보여주지 않음
+
+    ```jsx
+    // {name === 'admin' ? <h1>admin</h1> : null}
+    {name === 'admin' && <h1>admin</h1>}
+    ```
+
+    
 
 ## etc
 
+##### vscode extensions for react
+
+- ESLint: 자바스크립트 문법 및 코드 스타일 검사 도구
+
+- Reactjs Code Snippets: 코드 스니펫 모음(by charalampos karypidis)
+
+- Prettier-Code formatter: 코드 스타일 자동 정리 도구
+
+  - F1 - Format Document
+
+  - customize
+
+    - .prettierrc 파일 생성 및 코드 작성
+
+    - 추가 설정 [문서](https://prettier.io/docs/en/options.html) 참조
+
+      ```json
+      {
+        "singleQuote": true,
+        "semi": true,
+        "useTabs": false,
+        "tabWidth": 2
+      }
+      ```
+
+      
+
+
+
+##### undefined 렌더링 하지 않기
+
+- undefined만 반환하여 렌더링하는 상황을 만들면 에러가 남
+
+- OR(||) 연산자를 사용해 에러 방지
+
+  ```react
+  function App() {
+    const name = undefined
+    return name || '값: undefined'
+  }
+  ```
+
+  

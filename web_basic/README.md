@@ -216,6 +216,14 @@ dummy data: lorem + `tab`
 
 
 
+## Rendering
+
+- 사용자 화면에 뷰를 보여주는 것
+
+
+
+
+
 ##### https://animate.style/  애니메이션 api
 
 ##### https://poiemaweb.com/ 웹프로그래밍 튜토리얼
