@@ -10,8 +10,6 @@
 > >
 > > 웹 서버에서 이동하며 클라이언트와 서버간 양방향으로 통신하고, HTML 문서나 파일을 출력하는 GUI 기반의 소프트웨어 인터넷 컨텐츠를 검색 및 열람하도록 함. 구글 크롬, 모질라 파이어폭스, 마이크로소프트 엣지, 오페라, 사파리 등
 
-
-
 ## HISTORY
 
 - ##### 핵심 인물
@@ -481,46 +479,6 @@
   }
   
   const you = new Person('You', 24)
-  ```
-
-
-
-## Arrays
-
-```js
-const a = ['dog', 'cat', 'horse']
-a.length  // 3
-```
-
-- 존재하지 않는 배열 인덱스 참조 시 undefined
-
-  ```js
-  typeof(a[90]) // undefined
-  ```
-
-- forEach
-
-  ```js
-  ['dog', 'cat'].forEach( function (currentValue, index, array) {
-    // currentValue, array[index]로 작업 수행
-  })
-  ```
-
-- methods
-
-  ```js
-  a = ['dog', 'cat']
-  a.toString()  // 문자열 반환
-  a.concat(item1[, item2]...)  // item들이 덧붙여진 한 개의 배열 반환
-  a.join(sep)  // sep 인자로 구분해 합친 문자열 반환
-  a.pop()  // 배열의 마지막 항목 반환 및 제거
-  a.push(item)  // 배열 마지막에 추가
-  a.shift()  // 배열의 첫번째 항목 반환 및 제거
-  a.unshift()  // 배열의 앞에 추가
-  a.slice(start[, end])  // 배열의 일부분을 새배열로 반환
-  a.sort()  // 배열 정렬
-  a.reverse()  // 배열 역정렬
-  a.slice()  // 얕은 복사
   ```
 
 
