@@ -6,6 +6,16 @@
 
 ## 설정
 
+### 사전작업
+
+```bash
+$ git config user.name <name>
+$ git config user.email <eamil@mail.com>
+$ git config -l  // 확인
+```
+
+
+
 ### init
 
 - `git init`
@@ -77,4 +87,37 @@
 ### revert
 
 - `git revert <log>`
-- 
+
+
+
+## 협업
+
+- 협업 workflow
+- 서비스/제품 이력관리
+- 커밋 규칙과 정확한 메시지
+- 코드 리뷰
+
+
+
+## Git 브랜치 전략
+
+##### Git Flow 전략
+
+![](src/git-flow.png)
+
+- Git Flow 시작하기
+
+  ```bash
+  $ git flow init
+  $ git flow feature start sign_up(<feature name>)
+  $ git flow feature finish sign_up  // 자동 merge 하므로 리뷰 안됨
+  ```
+
+  
+
+- Trunk based
+
+  - branch를 short-lived로 가져감
+  - 숙련된 개발자들이 개발 시에 권장됨
+
+  
