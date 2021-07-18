@@ -30,7 +30,21 @@
 
   `O(n**2)` 배열의 길이 n에 대하여 각 요소에 대해 n의 시간이 필요
 
-  
+- 선택 정렬(Selection Sort)
+
+  - 주어진 자료들 중 가장 작은 값의 원소부터 차례대로 선택하여 위치를 교환하는 방식
+
+    ```python
+    def selection_sort(arr):
+      for i in range(len(arr)-1):
+        min = i
+        for j in range(i+1, len(arr)):
+          if a[min] > a[j]:
+            min = j
+          a[i], a[min] = a[min], a[i]
+    ```
+
+    `O(n**2)` 배열의 길이 n에 대하여 n만큼 최솟값을 찾아서 바꿈
 
 - 카운팅 정렬(Counting Sort)
   - 항목들의 순서를 결정하기 위해 집합에 각 항목이 몇 개씩 있는지 세는 작업을 하여, 선형 시간에 정렬하는 효율적인 알고리즘
@@ -57,31 +71,13 @@
 
   `O(n+k)` 배열의 길이 n에 대하여 가장 큰 수 k만큼의 처리가 더 필요
 
-  
+- 삽입 정렬(Insertion Sort)
 
-- 선택 정렬(Selection Sort)
+- 병합 정렬(Merge Sort)
 
-  - 주어진 자료들 중 가장 작은 값의 원소부터 차례대로 선택하여 위치를 교환하는 방식
-
-    ```python
-    def selection_sort(arr):
-      for i in range(len(arr)-1):
-        min = i
-        for j in range(i+1, len(arr)):
-          if a[min] > a[j]:
-            min = j
-          a[i], a[min] = a[min], a[i]
-    ```
-
-    `O(n**2)` 배열의 길이 n에 대하여 n만큼 최솟값을 찾아서 바꿈
-
-    
-
-
+  [MergeSort 정리 문서](./mergeSort.md)
 
 - 퀵 정렬(Quick Sort)
-- 삽입 정렬(Insertion Sort)
-- 병합 정렬(Merge Sort)
 
 
 
