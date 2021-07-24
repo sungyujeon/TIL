@@ -35,7 +35,7 @@ render(
 ##### javascript 사용
 
 ```js
-import styled { css } from 'styled-components'
+import styled, { css } from 'styled-components'
 
 const Button = styled.button`
   /* Adapt the colors based on primary prop */
