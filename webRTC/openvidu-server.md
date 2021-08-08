@@ -1,16 +1,16 @@
-# Openvidu
+# Openvidu deployment
 
-
+참고 : [openvidu - deployment - On premises](https://docs.openvidu.io/en/2.19.0/deployment/ce/on-premises/)
 
 
 
 ## Openvidu 서버 배포
 
-> openvidu on-promises 방식으로 배포
+> openvidu on promises 방식으로 배포
 >
-> 이 방식은 low-level에 속하는 서버 설정(openvidu server, kurento media server, coturn, redis, nginx 등의 서버를 도커 컨테이너 설정만 가져와서 별도로 추가 설정 없이 사용할 수 있게 하는 것)
+> 이 방식은 low-level에 속하는 서버 설정(openvidu server, kurento media server, coturn, redis, nginx 등의 서버를 도커 컨테이너만 가져와서 별도로 추가 설정 없이 사용할 수 있게 하는 것)
 >
-> docker-compose를 이용해 위 서버들이 실행되는 도커 컨테이너들을 관리하게 됨
+> docker-compose를 이용해 위 서버들이 실행되는 도커 컨테이너들을 통합 관리
 >
 > 기본적으로 아래 설정들은 ubuntu 환경에서 실행됨
 
@@ -27,8 +27,11 @@
 - ~~EC2 instance 생성(EC2 프리 티어가 10GB로 용량 부족)~~
 
   - 기존 제공된 ec2 instance에서는 웹 배포 서버에서 https 설정을 위해 443 포트를 사용하여 충돌이 날 가능성이 높음
-  - on-promises 방식에서 nginx가 포함되어 있어 https 설정 시 동일하게 443 포트를 사용(하는 것으로 의심됨)
-  - 따라서 개별 EC2 instance를 하나 설정
+  - on-promises 방식에서 container에 nginx가 포함되어 있어 https 설정 시 동일하게 443 포트를 사용(하는 것으로 의심됨)
+  - 따라서 개별 EC2 instance를 하나 설정 또는 아래 방법이 통하지 않을까...?
+  - 해결 방법으로는, docker-compose container에 올라간 nginx 서버를 종료시키고, EC2 로컬에 설치한 nginx에서 proxy location을 나누어 각각 openvidu 서버와 프론트 앱 서버로 라우팅되게 해주는 것이 이론적으로 가능하지 않을까라고 생각
+    - 코치님들께서 도와주셔서 하나의 nginx로 라우팅 하는 것은 가능했지만, react 서버에서 openvidu api 호출하는 과정에서 동일하게 connection 에러가 발생
+    - ??
 
 - Docker 설치
 
@@ -102,9 +105,9 @@
       
       CERTIFICATE_TYPE=letsencrypt
       
-      OPENVIDU_SECRET=ssafy
+      OPENVIDU_SECRET=MY_SECRET
       
-      LETSENCRYPT_EMAIL=llking829@gmail.com
+      LETSENCRYPT_EMAIL=<<유효한 이메일>>
       ```
 
   - start

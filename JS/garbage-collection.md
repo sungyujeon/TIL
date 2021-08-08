@@ -2,6 +2,8 @@
 
 참고자료 : [javascript info](https://ko.javascript.info/garbage-collection), [MDN](https://developer.mozilla.org/ko/docs/Web/JavaScript/Memory_Management)
 
+추가자료: https://ui.toast.com/weekly-pick/ko_20200228
+
 > 객체가 생성되었을 때 자동으로 메모리를 할당하고, 쓸모 없어졌을 때 자동으로 해제(garbage collection)함
 >
 > javascript는 `reachability` 개념을 기준으로 메모리 관리
