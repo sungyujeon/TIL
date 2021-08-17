@@ -1,4 +1,4 @@
-# 프로세스
+# 프로세스
 
 
 
@@ -11,7 +11,7 @@
   - 프로그램만의 독자적인 Address space(주소 공간)
   - 실제로 존재하는 것이 아니라 가상의 공간임
   - 당장 실행이 필요한 것은 Physical memory에 올라가고, 이외의 사용되지 않는 것은 Swap area에 존재함
-- Virtual Memory vs Virtual Memory
+- Virtual Memory vs Physical Memory
   - 논리적 주소와 물리적 주소가 달라 Address translation이라는 주소 변환 과정이 필요함
   - code / data / stack
     - code: 실행파일에 있는 코드가 올라오는 것으로, cpu에서 실제 실행할 기계어가 위치하는 곳
@@ -26,8 +26,9 @@
 
   - code: 커널에 관한 코드가 함수 형태로 들어있는 곳
   - data: 하드웨어를 관리하기 위한 자료구조를 가짐, 현재 실행중인 프로세스를 관리하기 위한 자료구조(PCB: Process Control Block, 프로세스가 n개면 PCB도 n개를 가짐)도 가지고 있음
-
-  - stack: 어떤 프로세스를 실행하기 위해 운영체제
+  - stack
+    - process stack: 
+    - kernel stack: process stack이 들어있음
 
 
 
