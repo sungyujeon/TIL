@@ -420,5 +420,49 @@ $ docker-compose up -d --build [service name]
 
 
 
+##### ubuntu 환경에서 postgres role fatal
+
+```bash
+$ sudo docker exec -it <<container name or id>> /bin/bash
+$ psql --username={myusername} --dbname={mydbname}
+```
+
+
+
+## POSTGRES
+
+> ubuntu 20.04 환경에서 docker로 띄우고 있는 postgres db에 접근하여 사용
+
+- 접속
+
+  ```bash
+  $ sudo docker exec -it <<container name or id>> /bin/bash
+  $ psql --username={myusername} --dbname={mydbname}
+  ```
+
+- 조회
+
+  - `\l` : 데이터베이스 목록 조회
+
+- 특정 database 접속
+
+  ```bash
+  <<database_name>>=# \c {database_name}
+  ```
+
+- 테이블 생성
+
+  ```bash
+  <<database_name>>=# CREATE {TABLE_NAME} ( {attributes...} );
+  ```
+
+- 테이블 조회
+
+  ```bash
+  <<database_name>>=# SELECT * FROM {TABLE_NAME};
+  ```
+
+  
+
 
 
