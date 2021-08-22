@@ -229,6 +229,7 @@
     - POSTGRES_INITDB_ARGS 부분이 추가되었는데, DB 서버의 인코딩을 UTF-8로 설정하기 위함
 
 - DJango
+
   - `django`
     - 앱 서비스의 이름을 django로 지정
 
@@ -420,15 +421,6 @@ $ docker-compose up -d --build [service name]
 
 
 
-##### ubuntu 환경에서 postgres role fatal
-
-```bash
-$ sudo docker exec -it <<container name or id>> /bin/bash
-$ psql --username={myusername} --dbname={mydbname}
-```
-
-
-
 ## POSTGRES
 
 > ubuntu 20.04 환경에서 docker로 띄우고 있는 postgres db에 접근하여 사용
@@ -463,6 +455,4 @@ $ psql --username={myusername} --dbname={mydbname}
   ```
 
   
-
-
 
