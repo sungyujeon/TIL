@@ -8,7 +8,7 @@
 
 ## STUN/TURN 개요
 
-- 일반적으로 사용하는 인터넷 네트워크는 방화벽이 존재하여, NAT(Network Address Translation)을 사용해 서로 다른 네트워크 상의 서버, 호스트 등이 내부 내테으쿼를 통해 서로 매핑하여 통신하는 방식
+- 일반적으로 사용하는 인터넷 네트워크는 방화벽이 존재하여, NAT(Network Address Translation)을 사용해 서로 다른 네트워크 상의 서버, 호스트 등이 내부 내트워크를 통해 서로 매핑하여 통신하는 방식
 - WebRTC는 시그널링(Signaling)이라는 통신 절차를 통해 P2P(Peer to Peer)로 통신하는데, 이 때 방화벽 뒤에 숨은 네트워크에 속한 클라이언트 Private IP들 끼리 P2P 통신이 불가하므로 중개하는 STUN 또는 TURN 서버를 사용
 
 
