@@ -90,7 +90,7 @@
   - 프로세스는 각자의 주소 공간을 가지고 수행되므로 원칙적으로 하나의 프로세스는 다른 프로세스의 수행에 영향을 미치지 못함
 - 협력 프로세스(Cooperating process)
   - 프로세스 협력 매커니즘을 통해 하나의 프로세스가 다른 프로세스의 수행에 영향을 미칠 수 있음
-- 프로세스 간 협력 매커니즘(IPC : Interprocess Communication)
+- 프로세스 간 협력 매커니즘(<b>IPC</b> : Interprocess Communication)
   - 2가지가 있음(message passing, shared memory)
   - 메시지를 전달하는 방법
     - Message system(message passing) : 커널을 통해 메시지 전달
