@@ -55,7 +55,7 @@
 - 같은 네트워크 대역에서 통신을 하더라도 데이터를 보내기 위해서는 7계층부터 캡슐화를 통해 데이터를 보내기 때문에, IP 주소와 MAC 주소가 모두 필요함
 - 이 때, IP 주소는 알고 MAC 주소는 모르더라도 ARP를 통해 통신이 가능
 
-![](../../Labs/cs-study/네트워크/src/ARP.png)
+![](./src/ARP.png)
 
 - Hardware type : 2계층에서 사용하는 프로토콜 타입(일반적으로 ethernet...)
 - Protocol type : 일반적으로 IPv4
@@ -130,7 +130,7 @@
   - Destination Address (도착지 IP 주소)
   - IP Option: 20byte로 구성(IP Option이 붙으면 최대 60byte)
 
-  ![](../../Labs/cs-study/네트워크/src/ipv4-structure.png)
+  ![](./src/ipv4-structure.png)
 
 
 
@@ -143,7 +143,7 @@
 - 프로토콜 구조의 Type과 Code를 통해 오류 메시지 전송 받음
 
 
-![](../../Labs/cs-study/네트워크/src/icmp-structure.png)
+![](./src/icmp-structure.png)
 
 - Type: 대분류
   - 8(Echo), 0(Echo Reply): 8번이 요청, 0번이 응답
@@ -168,7 +168,7 @@
 
 - 다른 네트워크와의 통신 과정(내 컴퓨터에서 보낸 패킷이 다른 네트워크 컴퓨터까지 어떻게 이동하는가?)
 
-  ![](../../Labs/cs-study/네트워크/src/routing-table.png)
+  ![](./src/routing-table.png)
 
   - A 컴퓨터가 라우팅 테이블을 확인했을 때, B의 네트워크 대역이 존재해야 통신 가능
   - 자신과 통신하는 공유기에 맞게 프로토콜을 갱신(ethernet protocol에서 자신과 통신하는 MAC 주소를 확인하여 바꿔줌)
@@ -202,7 +202,7 @@
   - 첫번째 패킷의 데이터의 크기는 몇인가? 960
   - 마지막 패킷의 데이터의 크기는 몇인가? 459 byte
 
-  ![](../../Labs/cs-study/네트워크/src/ipv4-segmentation.png)
+  ![](./src/ipv4-segmentation.png)
 
   
 

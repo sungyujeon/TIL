@@ -49,7 +49,7 @@ $ netstat -ano
 
 ## UDP 프로토콜
 
-![](../../Labs/cs-study/네트워크/src/udp-structure.png)
+![](./src/udp-structure.png)
 
 - 4계층 프로토콜
 - 사용자 데이터그램 프로토콜(User Datagram Protocol, UDP)은 유니버설 데이터그램 프로토콜(Universal Datagram Protocol)이라고 일컫기도 함
@@ -83,7 +83,7 @@ $ netstat -ano
 
 - TCP는 UDP보다 안전하지만 느림(하지만 충분히 빠름)
 
-  ![tcp-structure](../../Labs/cs-study/네트워크/src/tcp-structure.png)
+  ![tcp-structure](./src/tcp-structure.png)
 
   - 일반적인 길이는 20byte( 60 byte 까지 늘어날 수는 있음)
   - Source Port: 출발지 포트
@@ -119,7 +119,7 @@ $ netstat -ano
 
 ## TCP를 이용한 데이터 전송 과정
 
-![3way-handshaking](../../Labs/cs-study/네트워크/src/3way-handshaking.png)
+![3way-handshaking](./src/3way-handshaking.png)
 
 - shaking이 일어날 때마다 받은 sequence 번호에 1을 더해서 ack 번호 결정
 - 한번 주고 받으면 동기화하여 sequence 번호에 받은 ack 번호 대입 
@@ -133,4 +133,4 @@ $ netstat -ano
 
 ## TCP의 연결 상태 변화
 
-![TCP-connection-status](../../Labs/cs-study/네트워크/src/TCP-connection-status.png)
+![TCP-connection-status](./src/TCP-connection-status.png)
