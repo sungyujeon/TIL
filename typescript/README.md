@@ -35,9 +35,35 @@
 
 ## Settings
 
-~~작성 필요~~
+- react
 
+  - yarn
 
+    ```bash
+    $ yarn create react-app <<pjt name>> . --template typscript
+    ```
+
+  - npm
+
+    ```bash
+    $ npx create react-app <<pjt name>> . --template typscript
+    ```
+
+  - typescript eslint
+
+    ```bash
+    $ yarn add -D @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-airbnb-typescript  // (eslint-plugin-jest / jest 사용시 추가)
+    ```
+
+    ```bash
+    $ npx install-peerdeps --dev eslint-config-airbnb
+    ```
+
+  - add the packages to integrate ESLint with Prettier rules.
+
+    ```bash
+    $ yarn add -D prettier eslint-config-prettier eslint-plugin-prettier
+    ```
 
 ## 타입 선언(기본)
 
