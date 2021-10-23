@@ -30,7 +30,7 @@
 - Load time binding
 
   - Loader의 책임 하에 물리적 메모리 주소 부여
-  - 컴파일러가 재배치 가능 코드(ㄱelocatable code)를 생성한 경우 가능
+  - 컴파일러가 재배치 가능 코드(relocatable code)를 생성한 경우 가능
 
 - Execution time binding(=Run time binding)
 
@@ -285,9 +285,7 @@
 - <b>Allocation</b>
   - first fit / best fit
   - external fragmentation 발생
-  - segment의 길이가 동일하지 않으므로 가변분할 방식에서와 동일한 문제점 발생
-
-##### 
+  - segment의 길이가 동일하지 않으므로 가변분할 방식에서와 동일한 문제점 발생 
 
 
 

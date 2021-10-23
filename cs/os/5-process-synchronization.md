@@ -372,5 +372,17 @@
   - x.wait()을 invoke한 프로세스는 다른 프로세스가 x.signal()을 invoke 하기 전까지 suspend됨
   - x.signal()은 정확하게 하나의 suspend된 프로세스를 resume 한다. suspend된 프로세스가 없으면 아무 일도 일어나지 않음
 
+
+
+##### Bounded Buffer Problem -> Monitor
+
+- 자원을 세는 변수 없이 큐만 운용
+- 큐의 특성상 버퍼의 개수를 셀 필요가 없기 때문
+- 큐에서 대기하고 있는 프로세스가 없으면 아무런 일도 일어나지 않음
+
+
+
+##### Dining Philosophers -> Monitor
+
 ![](../../../Labs/cs-study/운영체제/src/monitor-dining-philosophers.png)
 
