@@ -36,7 +36,7 @@
   - OS & HW page fault overhead / swap page out if needed / swap page in / OS & HW restart overhead 등의 작업이 발생하기 때문
 - Free frame이 없는 경우
   - Page replacement
-    - 어떤 frame을 빼앗아올지 경정해야 함
+    - 어떤 frame을 빼앗아올지 결정해야 함
     - 곧바로 사용되지 않을 page를 쫓아내는 것이 좋음
     - 동일한 페이지가 여러번 메모리에서 쫓겨났다가 다시 들어올 수 있음
   - Replacement Algorithm
@@ -48,7 +48,7 @@
 
 - 미래에 사용될 페이지를 아는지 모르는지
   - 알 때: Optimal Algorithm
-  - 모를 때(과거 참조): FIFO, LRU
+  - 모를 때(과거 참조): FIFO, LRU, LFU
 
 ### Optimal Algorithm
 
