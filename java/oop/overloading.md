@@ -19,8 +19,8 @@
 
 ```java
 // 타입... 변수명
-
+public PrintStream printf(String format, Object... args) {}
 ```
 
-
+- 가변인자를 매개변수 중에 제일 마지막에 선언해야 함
 
