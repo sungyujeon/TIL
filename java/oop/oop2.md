@@ -197,7 +197,7 @@ public class Test {
 		
 		System.out.println(parent.x);
 		System.out.println(child.x);
-		child.method();
+		parent.method();
 		child.method();
 	}
 }
@@ -227,7 +227,7 @@ class Child extends Parent {
 ```txt
 실행결과
 10
-10
+40
 child method
 child method
 ```
