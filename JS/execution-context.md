@@ -10,16 +10,21 @@
   - 하나의 프로그램에는 하나의 전역 실행 컨텍스트만이 존재
 - Functional Execution Context(함수형 실행 컨텍스트)
   - 함수가 호출될 때마다 각 함수에 대한 함수 실행 컨텍스트 생성
-  - 각 함수는 자신만의 함수 실행 컨텍스트를 가지고, 해당 함수가 호출되거나 블록
+  - 각 함수는 자신만의 함수 실행 컨텍스트를 가지고, 해당 함수가 호출되거나 블록을 생성하면 만들어짐
 
 
 
-실행 컨텍스트 구조
+##### 실행 컨텍스트 구조
+
+![](./src/execution-context-structure.png)
+
+<p align="center">출처: https://github.com/Dongkyun-Jang/TIL</p>
 
 - VariableEnvironment
-  - environmentRecord(snapshot)
-  - outerEnvironmentReference(snapshot)
+  - 현재 컨텍스트 내의 식별자들에 대한 정보(environmentRecord) + 외부 환경 정보(outerEnvironmentReference)
+  - 변경사항은 반영되지 않음
+  
 - LexicalEnvironment
-  - environmentRecord(snapshot)
-  - outerEnvironmentReference(snapshot)
+  - 처음에는 VariableEnvironment의 값과 같지만 변경 사항이 실시간 반영
+
 - ThisBinding
