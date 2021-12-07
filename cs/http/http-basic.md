@@ -41,7 +41,7 @@ HTTP는 신뢰성 있는 데이터 전송 프로토콜을 사용하기 때문에
 
 인터넷은 수천 가지의 데이터 타입을 다루기 때문에, HTTP는 웹에서 전송되는 객체 각각에 신중하게 MIME 타입이라는 데이터 포맷 라벨을 붙인다.
 
-- MIME(Multipurpose Internet Network Extensions, 다목적 인터넷 메일 확장)
+- MIME(Multipurpose Internet Mail Extensions, 다목적 인터넷 메일 확장)
 - MIME는 원래 각기 다른 전자메일 시스템 사이에서 메시지가 오갈 때 겪는 문제점을 해결하기 위해 설계됨
 - MIME가 이메일에서 워낙 잘 동작했기 때문에 HTTP에서도 **멀티미디어 콘텐츠를 기술하고 라벨을 붙이기 위해 채택**하였다.
 
@@ -53,7 +53,7 @@ MIME 타입은 사선('/')으로 구분된 주 타입(primary object type)과 �
 - text/plain → plain ASCII 텍스트 문서
 - image/jpeg → JPEG 이미지
 - image/gif → GIF 이미지
-- video/quicktime → 애플 퀵타임 동ㅇ여상
+- video/quicktime → 애플 퀵타임 동영상
 - application/vnd.ms-powerpoint → 마이크로소프트 파워포인트 프레젠테이션
 
 ### 1.3.2 URI
@@ -87,7 +87,7 @@ http://www.joes-hardware.com/specials/saw-blade.gif
 - 두 번째 부분은 서버의 인터넷 주소를 제공한다. (e.g., [www.joes-hardware.com](http://www.joes-hardware.com))
 - 마지막은 웹 서버의 리소스를 가리킨다 (e.g., /special/saw-blade.gif)
 
-### 1.3.4 URN
+### 1.3.4 URN(Uniform Resource Name)
 
 URN은 콘텐츠를 이루는 한 리소스에 대해, 그 리소스의 위치에 영향을 받지 않는 유일무이한 이름 역할을 한다. 이 **위치 독립적**인 URN은 리소스를 여기저기로 옮겨 다니더라도 문제없이 동작한다. 리소스가 그 이름으 변하지 않게 유지하는 한, 여러 종류의 네트워크 접속 프로토콜로 접근해도 문제없다.
 
