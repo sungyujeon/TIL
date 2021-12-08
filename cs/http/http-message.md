@@ -159,7 +159,7 @@
 
   - 어떤 종류의 서버와 통신을 하고 있는지 정보 제공
   - 누가 응답을 보내고 있는지, 응답자의 능력은 어떻게 되는지 알려주어, 클라이언트가 나중에 더 나은 요청을 할 수 있도록 도와줌
-  - Age, Public, Retry-After, SErver, Title, Warning 등
+  - Age, Public, Retry-After, Server, Title, Warning 등
   - 이외에도 협상 헤더, 응답 보안 헤더 등이 있음
 
 - Entity 헤더: 본문 크기와 콘텐츠, 혹은 리소스 그 자체 서술
