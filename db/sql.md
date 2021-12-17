@@ -173,3 +173,15 @@ SELECT * FROM example;
 ```
 
 - with절을 한 번만 사용하면 subquery를 만드는 것과 성능상 크게 차이가 없지만, 해당 subquery를 하나의 sql 문에서 여러 번 사용한다면, 성능상 큰 이점이 있음
+
+
+
+## 기타
+
+##### sysdate vs systimestamp
+
+- sysdate
+  - `년월일시분초` 까지 표현 가능
+  - 날짜를 포맷 적용하여 문자열로 변환
+- systimestamp
+  - millliseconds 까지 표현 가능
