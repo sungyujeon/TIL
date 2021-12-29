@@ -176,6 +176,68 @@ SELECT * FROM example;
 
 
 
+## INSERT
+
+##### multi row insert
+
+- INSERT ALL
+
+  ```sql
+  INSERT ALL
+  	INTO TB_A (col1, col2) VALUES ('val1_1', 'val1_2')
+  	INTO TB_A (col1, col2) VALUES ('val1_1', 'val1_2')
+  SELECT 1 FROM DUAL;
+  ```
+
+  - `INSERT ALL` requires a `SELECT` subquery
+
+- INSERT INTO SELECT
+
+  ```sql
+  -- A, B 테이블 스키마가 동일할 경우
+  INSERT INTO B SELECT A;
+  
+  -- 일부 컬럼만 가져올 경우
+  INSERT INTO B
+  SELECT COL1, COL2 FROM A;
+  ```
+
+  - 원본과 대상 테이블이 모두 있는 경우 사용
+
+- SELECT * INTO
+
+  ```sql
+  -- A 테이블의 데이터를 A_COPY 테이블을 새로 생성해 만들 경우
+  SELECT * INTO A_COPY FROM A;
+  
+  -- 일부 컬럼만 가져올 경우
+  SELECT * INTO A_COPY
+  FROM
+  (
+      SELECT COL1, COL2 FROM A
+  )
+  ```
+
+  - 원본은 있고 대상 테이블은 새롭게 생성하려 할 경우 사용
+
+
+
+## DELETE
+
+##### DELETE vs TRUNCATE vs DROP
+
+- DELETE
+  - where 절을 통해 row를 하나하나 삭제할 수 있고, 전체 삭제를 하더라도 row를 돌면서 삭제하여 해당 메모리 공간을 가지고 있게 됨(쿼리 처리속도 김). 
+  - commit 전에 반영되지 않음
+- TRUNCATE 
+  - 테이블 내 데이터 한 번에 제거하며, 테이블의 구조만 남김
+  - 자동 commit
+- DROP
+  - 테이블 완전 삭제
+  - 자동 commit
+
+
+
 ## 기타
 
 ##### sysdate vs systimestamp
