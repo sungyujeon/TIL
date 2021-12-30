@@ -6,7 +6,7 @@
 
 ## SQL 함수
 
-##### 단일 행 함수
+##### 단일 행 함수(Single Row Function)
 
 > 문자형, 숫자형, 날짜형, 변환형, 일반함수(NVL, DECODE)
 
@@ -17,18 +17,28 @@
   - 하나 이상의 인수를 필요로 함
   - 함수 중첩 가능(하위 level -> 상위 level)
 
+- DECODE 함수
+
+  > CASE, IF-THEN-ELSE-END IF문장의 조건적 조회를 가능하게 함
+
+  ```sql
+  DECODE(col | expr, search1, result[, search2, result2, ...][,default])
+  DECODE(#{callSrcFlag}, 'BATCH', TO_CHAR(SYSDATE, 'YYYYMMDD'), #{baseDt})
+  ```
+
+  - `if` callSrcFlag `==` 'BATCH' `THEN` SYSDATE `ELSE` baseDt
 
 
-##### DECODE 함수
 
-> CASE, IF-THEN-ELSE-END IF문장의 조건적 조회를 가능하게 함
+##### 그룹 함수(Multi Row Function)
 
-```sql
-DECODE(col | expr, search1, result[, search2, result2, ...][,default])
-DECODE(#{callSrcFlag}, 'BATCH', TO_CHAR(SYSDATE, 'YYYYMMDD'), #{baseDt})
-```
+> AVG, COUNT, MAX, MIN, STDDEV, SUM, VARIANCE
 
-- `if` callSrcFlag `==` 'BATCH' `THEN` SYSDATE `ELSE` baseDt
+- Guidelines
+  - DISTINCT는 해당 함수가 오직 중복되지 않는 값만 return 하게 함
+  - Expr이 있는 인수들의 자료 형태는 CHAR, VARCHAR2, NUMBER, DATE 형태가 될 수 있음
+  - COUNT(*)를 제외한 모든 그룹 함수들은 NULL 값 무시(NVL을 이용해 처리 가능)
+  - MAX, MIN은 모든 자료형 가능 / AVG, SUM, VARIANCE, STDDEV는 NUMBER 자료형만 가능
 
 
 
@@ -50,6 +60,8 @@ FROM table_name
   - group by에서 alias 사용 불가
   - where 절을 먼저 명시하면 조건에 맞는 값들만 grouping, having 절은 grouping 이후 조건절 적용
   - grouping 된 결과는 실행 순서상 where절에 기술할 수 없으므로 해당 조건은 having에서 처리
+
+<br>
 
 ```sql
 SELECT A.GOODS_CD                 AS GOODS_CD     /*상품코드*/
@@ -176,6 +188,12 @@ SELECT * FROM example;
 
 
 
+## SELECT
+
+
+
+
+
 ## INSERT
 
 ##### multi row insert
@@ -238,6 +256,54 @@ SELECT * FROM example;
 
 
 
+## Subprogram(procedure, function)
+
+> Subprogram은 매개변수를 사용할 수 있고 호출할 수 있는 PL/SQL BLOCK
+>
+> 일반적으로 특정 작업들을 수행하기 위해 Procedure를 사용하고, 값을 계산하기 위해 Function 사용
+
+##### Function
+
+```sql
+CREATE [OR REPLACE] FUNCTION function_name
+	[(argument1 [mode1] datatype [{:= | DEFAULT} expression]
+    [,argument2 [mode2] datatype [{:= | DEFAULT} expression], ...])]
+RETURN data_type
+{IS | AS}
+BEGIN
+	pl/sql_block;
+END;
+```
+
+
+
+## String
+
+##### INSTR
+
+```sql
+INSTR( column | expression, m[, n])
+INSTR('MILLER', 'L', 1, 2)  -- 4
+```
+
+- m(start index), n(order of the word)
+- m번째 index부터 n번째 문자가 있는 index 찾아라
+
+
+
+##### SUBSTR
+
+```sql
+SUBSTR( column | expression, m[, n])
+SUBSTR('000101-3234232', 8, 1) -- 3
+```
+
+- m번째 index부터 n개만큼 문자열 추출
+
+
+
+
+
 ## 기타
 
 ##### sysdate vs systimestamp
@@ -247,3 +313,6 @@ SELECT * FROM example;
   - 날짜를 포맷 적용하여 문자열로 변환
 - systimestamp
   - millliseconds 까지 표현 가능
+
+
+
