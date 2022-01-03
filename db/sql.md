@@ -254,28 +254,7 @@ SELECT * FROM example;
   - 테이블 완전 삭제
   - 자동 commit
 
-
-
-## Subprogram(procedure, function)
-
-> Subprogram은 매개변수를 사용할 수 있고 호출할 수 있는 PL/SQL BLOCK
->
-> 일반적으로 특정 작업들을 수행하기 위해 Procedure를 사용하고, 값을 계산하기 위해 Function 사용
-
-##### Function
-
-```sql
-CREATE [OR REPLACE] FUNCTION function_name
-	[(argument1 [mode1] datatype [{:= | DEFAULT} expression]
-    [,argument2 [mode2] datatype [{:= | DEFAULT} expression], ...])]
-RETURN data_type
-{IS | AS}
-BEGIN
-	pl/sql_block;
-END;
-```
-
-
+<br>
 
 ## String
 
