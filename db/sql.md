@@ -6,7 +6,7 @@
 
 ## SQL 함수
 
-##### 단일 행 함수
+##### 단일 행 함수(Single Row Function)
 
 > 문자형, 숫자형, 날짜형, 변환형, 일반함수(NVL, DECODE)
 
@@ -17,18 +17,28 @@
   - 하나 이상의 인수를 필요로 함
   - 함수 중첩 가능(하위 level -> 상위 level)
 
+- DECODE 함수
+
+  > CASE, IF-THEN-ELSE-END IF문장의 조건적 조회를 가능하게 함
+
+  ```sql
+  DECODE(col | expr, search1, result[, search2, result2, ...][,default])
+  DECODE(#{callSrcFlag}, 'BATCH', TO_CHAR(SYSDATE, 'YYYYMMDD'), #{baseDt})
+  ```
+
+  - `if` callSrcFlag `==` 'BATCH' `THEN` SYSDATE `ELSE` baseDt
 
 
-##### DECODE 함수
 
-> CASE, IF-THEN-ELSE-END IF문장의 조건적 조회를 가능하게 함
+##### 그룹 함수(Multi Row Function)
 
-```sql
-DECODE(col | expr, search1, result[, search2, result2, ...][,default])
-DECODE(#{callSrcFlag}, 'BATCH', TO_CHAR(SYSDATE, 'YYYYMMDD'), #{baseDt})
-```
+> AVG, COUNT, MAX, MIN, STDDEV, SUM, VARIANCE
 
-- `if` callSrcFlag `==` 'BATCH' `THEN` SYSDATE `ELSE` baseDt
+- Guidelines
+  - DISTINCT는 해당 함수가 오직 중복되지 않는 값만 return 하게 함
+  - Expr이 있는 인수들의 자료 형태는 CHAR, VARCHAR2, NUMBER, DATE 형태가 될 수 있음
+  - COUNT(*)를 제외한 모든 그룹 함수들은 NULL 값 무시(NVL을 이용해 처리 가능)
+  - MAX, MIN은 모든 자료형 가능 / AVG, SUM, VARIANCE, STDDEV는 NUMBER 자료형만 가능
 
 
 
@@ -50,6 +60,8 @@ FROM table_name
   - group by에서 alias 사용 불가
   - where 절을 먼저 명시하면 조건에 맞는 값들만 grouping, having 절은 grouping 이후 조건절 적용
   - grouping 된 결과는 실행 순서상 where절에 기술할 수 없으므로 해당 조건은 having에서 처리
+
+<br>
 
 ```sql
 SELECT A.GOODS_CD                 AS GOODS_CD     /*상품코드*/
@@ -176,6 +188,101 @@ SELECT * FROM example;
 
 
 
+## SELECT
+
+
+
+
+
+## INSERT
+
+##### multi row insert
+
+- INSERT ALL
+
+  ```sql
+  INSERT ALL
+  	INTO TB_A (col1, col2) VALUES ('val1_1', 'val1_2')
+  	INTO TB_A (col1, col2) VALUES ('val1_1', 'val1_2')
+  SELECT 1 FROM DUAL;
+  ```
+
+  - `INSERT ALL` requires a `SELECT` subquery
+
+- INSERT INTO SELECT
+
+  ```sql
+  -- A, B 테이블 스키마가 동일할 경우
+  INSERT INTO B SELECT A;
+  
+  -- 일부 컬럼만 가져올 경우
+  INSERT INTO B
+  SELECT COL1, COL2 FROM A;
+  ```
+
+  - 원본과 대상 테이블이 모두 있는 경우 사용
+
+- SELECT * INTO
+
+  ```sql
+  -- A 테이블의 데이터를 A_COPY 테이블을 새로 생성해 만들 경우
+  SELECT * INTO A_COPY FROM A;
+  
+  -- 일부 컬럼만 가져올 경우
+  SELECT * INTO A_COPY
+  FROM
+  (
+      SELECT COL1, COL2 FROM A
+  )
+  ```
+
+  - 원본은 있고 대상 테이블은 새롭게 생성하려 할 경우 사용
+
+
+
+## DELETE
+
+##### DELETE vs TRUNCATE vs DROP
+
+- DELETE
+  - where 절을 통해 row를 하나하나 삭제할 수 있고, 전체 삭제를 하더라도 row를 돌면서 삭제하여 해당 메모리 공간을 가지고 있게 됨(쿼리 처리속도 김). 
+  - commit 전에 반영되지 않음
+- TRUNCATE 
+  - 테이블 내 데이터 한 번에 제거하며, 테이블의 구조만 남김
+  - 자동 commit
+- DROP
+  - 테이블 완전 삭제
+  - 자동 commit
+
+<br>
+
+## String
+
+##### INSTR
+
+```sql
+INSTR( column | expression, m[, n])
+INSTR('MILLER', 'L', 1, 2)  -- 4
+```
+
+- m(start index), n(order of the word)
+- m번째 index부터 n번째 문자가 있는 index 찾아라
+
+
+
+##### SUBSTR
+
+```sql
+SUBSTR( column | expression, m[, n])
+SUBSTR('000101-3234232', 8, 1) -- 3
+```
+
+- m번째 index부터 n개만큼 문자열 추출
+
+
+
+
+
 ## 기타
 
 ##### sysdate vs systimestamp
@@ -185,3 +292,6 @@ SELECT * FROM example;
   - 날짜를 포맷 적용하여 문자열로 변환
 - systimestamp
   - millliseconds 까지 표현 가능
+
+
+
