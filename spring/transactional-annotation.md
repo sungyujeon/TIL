@@ -1,4 +1,4 @@
-# @Transactional
+## @Transactional
 
 > 메서드, 클래스, 인터페이스의 Transaction 처리를 가능하게 해주는 annotation
 >
@@ -7,23 +7,24 @@
 > > Transaction
 > >
 > > - Database의 상태를 변환시키는 하나의 논리적 기능을 수행하기 위한 작업 단위나 한 번에 수행되어야 하는 일련의 연산
-> > - ACID 원칙 준수
+> > - ACID 원칙 준수 [ACID 참고](../db/README.md)
+
+<br>
 
 ## @Transactional 옵션
 
-### isolation
+##### isolation
 
-```
+> [참고 사이트](https://nesoy.github.io/articles/2019-05/Database-Transaction-isolation)
+
+```java
 @Transactional(isolation=Isolation.DEFAULT)
 public void addUser(User user) throws Exception {}
 ```
 
 - DEFAULT
-
   - 기본 격리 수준(default, DB의 isolation level에 따름)
-
 - READ_UNCOMMITTED(level 0)
-
   - 커밋되지 않은(트랜잭션 처리 중인) 데이터에 대한 읽기 허용
   - `Dirty Read` 발생 가능(트랜잭션 처리 중인 A 라는 데이터가 rollback 되면 잘못된 데이터를 read하는 것이 될 수 있음)
 
@@ -49,15 +50,18 @@ public void addUser(User user) throws Exception {}
 
   - `Phantom Read` 문제 발생 가능
 
+    - [참고 사이트](https://www.postgresql.kr/blog/pg_phantom_read.html)
     - 사용자 A에 의해 특정 범위의 데이터 [1,2,3,4]를 두 번 읽는 트랜잭션이 수행된다고 한다면, 두번째 read 전에 사용자 B가 [5,6,7,8] 이라는 데이터를 추가해버리면 첫번째와 두번째 read의 결과가 달라진다. [1,2,3,4]의 데이터에 대한 shared lock이 걸리지만, 다른 row의 데이터는 영향을 받지 않기 때문에 commit 전에도 영향을 받을 수 있다.
 
 - SERIALIZABLE(level 3)
 
   - 데이터의 일관성과 동시성을 유지하기 위해 MVCC를 사용하지 않는 것
 
-### **propagation(전파속성)**
+<br>
 
-```
+##### propagation(전파속성)
+
+```java
 @Transactional(propagation=Propagation.REQUIRED)
 public void addUser(User user) throws Exception {}
 ```
@@ -81,40 +85,39 @@ public void addUser(User user) throws Exception {}
     `Create a new transaction, suspending the current transaction if one exists`
 
 - MANDATORY
-
   - REQUIRED와 비슷하게 이미 진행중인 트랜잭션이 있으면 따르지만, 없다면 새로운 트랜잭션을 생성하지 않고 예외를 발생시킴
   - 즉, 진행중인 트랜잭션이 있을 경우에만 사용(독립적으로 트랜잭션 생성할 수 없다는 의미)
-
 - NOT_SUPPORTED
-
   - 현재 진행중인 트랜잭션을 따르지 않고, 트랜잭션 없이(생성하지 않고) 진행
-
 - NEVER
-
   - 트랜잭션 자체를 사용하지 않음
   - 진행 중인 트랜잭션이 있으면 예외 발생
-
 - NESTED
-
   - 이미 진행중인 트랜잭션이 있다면 트랜잭션을 새로 생성해 중첩으로 시작
   - 없다면 REQUIRED와 같고, REQUIRED_NEW와는 아래의 차이점이 존재
     - nested는 진행중인 부모 트랜잭션의 커밋과 롤백에는 영향을 받지만, 자신의 커밋과 롤백은 부모 트랜잭션에 영향을 주지 않음
     - 예를 들어 Main 작업과 Sub 작업인 DB로그 작업이 있다면, 로그 작업을 실패한다고 해서 Main 작업도 롤백시키면 안되겠지만 Main 작업이 실패하면 로그 작업도 함께 롤백시켜야 함
 
-### **readonly**
+<br>
 
-```
+##### readonly
+
+```java
 @Transactional(readonly=true)
 public void addUser(User user) throws Exception {}
 ```
+
+
 
 - false(default)
 - true
   - insert, update, delete 실행 시 예외 발생
 
-### **rollbackFor**
+<br>
 
-```
+##### rollbackFor
+
+```java
 @Transactional(rollbackFor=Exception.class)
 public void addUser(User user) throws Exception {}
 ```
@@ -122,24 +125,25 @@ public void addUser(User user) throws Exception {}
 - 특정 예외가 발생할 시 강제 rollback
 - value로는 runtime error, unexpected error가 아닌 사용자가 정의한 예외의 class를 명시
 
-### **noRollbackFor**
+<br>
 
-```
+##### noRollbackFor
+
+```java
 @Transactional(noRollbackFor=RestException.class)
 public void addUser(User user) throws Exception {}
 ```
 
 - 특정 예외를 rollback 처리하지 않음
 
-### **timeout**
+<br>
 
-```
+##### timeout
+
+```java
 @Transactional(timeout=10)
 public void addUser(User user) throws Exception {}
 ```
 
 - default == -1, -1인경우 no timeout
 - must return a number of seconds
-
-
-
