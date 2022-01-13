@@ -15,6 +15,29 @@
   - elem.setAttribute(name, value): 속성값 변경
   - elem.removeAttribute(name): 속성값 삭제
 
-   
 
-추후 정리!
+
+
+##### attribute vs property
+
+> attribute는 html 문서 안에 존재하며 변하지 않지만, property는 DOM 안에 존재하여 동적으로 제어가 가능한 값
+
+- attribute
+
+  - HTML element의 추가적 정보 전달
+
+  - 이름 = '값' 쌍으로 표현
+
+    ```html
+    <div class="my-class" />
+    ```
+
+- property
+
+  - attribute에 대한 HTML DOM tree 안에서의 표현
+
+    ```html
+    Div node
+    |- nodename = "DIV"
+    |- className = "my-class"
+    ```
