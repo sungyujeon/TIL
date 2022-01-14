@@ -23,16 +23,14 @@
     - 내부 -> 외부 네트워크
       - 라우팅 후에 발생
       - 내부 네트워크에서 내보내고자 하는 패킷이 있다면, 목적지까지의 경로를 결정한 뒤에 private IP를 public IP로 바꿔주는 것이라고 할 수 있음
-
     - 외부 -> 내부 네트워크
       - 라우팅 전에 발생
       - 외부 네트워크에서 내부 네트워크로 들어오는 패킷이 있다면, public IP를 목적지로 설정하고 들어오는 패킷임. 이 패킷을 받은 뒤에 어떤 사설 네트워크로 보내줘야 할지를 결정해야 함. 따라서 어떤 사설 네트워크로 보내줘야 할지 라우팅하기 전에 NAT로 사설 IP를 찾아낸 뒤에 경로를 찾는 것임
-
-
+    
     <img src="./src/dnat-snat.jpg" style="zoom:100%;" />
-
+    
     출처: [STEVEN J.LEE 블로그](https://www.stevenjlee.net/2020/07/11/%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0-nat-network-address-translation-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC-%EC%A3%BC%EC%86%8C-%EB%B3%80%ED%99%98/)
-
+    
     - 패킷방향에 따른 NAT 구분(SourceNAT(공유기 등), DestinationNAT(방화벽 또는 로드밸런서 등))
     -  SNAT은 출발지 IP를 public IP로 바꿔주는 것이고, DNAT은 외부에서 들어온 목적지 IP를 내부 private IP로 바꿔주는 것
 
