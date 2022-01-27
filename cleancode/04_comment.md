@@ -123,6 +123,7 @@ public static SimpleDateFormat makeStandardHttpDateFormat() {
 ```
 
 - @Ignore 속성을 이용해 테스트 케이스를 실행하지 않게 할 수 있는 등의 방법도 있음
+- 스레드에 안전하지 못하다는 것은 @NotThreadSafe annotation을 이용해 할 수도 있음
 - 프로그래머가 주의해야 하는 내용을 주석으로 달 수 있음
 
 
@@ -165,7 +166,7 @@ return buildList(text.substring(match.end()));
 
 > 위 설명을 제외한 대부분의 주석이 나쁜 주석이다
 
-##### 
+
 
 ##### 주절거리는 주석
 
@@ -368,3 +369,22 @@ private static int determineIterationLimit() {
 
 - 첫번째 주석은 중복이라 생각할 수 있지만 알고리즘을 더 이해하기 쉽게해준다!
 - 두 번째 주석은 루프 한계값으로 제곱근을 사용한 이유를 설명하므로 필요하다!
+
+
+
+##### JavaDoc
+
+> Java 코드에서 API 문서를 HTML 형식으로 생성해주는 도구
+
+```java
+// This is a single line comment
+
+/*
+ * This is a regular multi-line comment
+ */
+
+/**
+ * This is a Javadoc
+ */
+```
+
