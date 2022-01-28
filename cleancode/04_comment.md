@@ -110,7 +110,7 @@ public void _testWithReallyBigFile() {
   response.setBody(testFile);
   response.readyToSend(this);
   assertSubString("content-Length: 1000000000", responseString);
-  assertTure(bytesSent > 1000000000);
+  assertTrue(bytesSent > 1000000000);
 }
 
 public static SimpleDateFormat makeStandardHttpDateFormat() {
@@ -147,7 +147,7 @@ protected VersionInfo makeVersion() throws Exception {
 
 ```java
 String listItemContent = match.group(3).trim();
-// 여기서 trim은 정말 중요하다. trim gㅏㅁ수는 문자열에서 시작 공백을 제거한다.
+// 여기서 trim은 정말 중요하다. trim 함수는 문자열에서 시작 공백을 제거한다.
 // 문자열에 시작 공백이 있으면 다른 문자열로 인식되기 때문이다.
 new ListItemWidget(this, listItemContent, this.level + 1);
 return buildList(text.substring(match.end()));
@@ -354,8 +354,8 @@ public void setFitnessePort(int fitnessePort) {
  * 이 클래스는 사용자가 지정한 최대 값까지 소수를 구한다.
  * 알고리즘은 에라토스테네스의 체다.
  * 2에서 시작하는 정수 배열을 대상으로 작업한다.
- * 처음으로 남아 잇는 정수를 찾아 배수를 모두 제거한다.
- * 배열에 더 이상 배수가 없을 때까지 반복하낟.
+ * 처음으로 남아 있는 정수를 찾아 배수를 모두 제거한다.
+ * 배열에 더 이상 배수가 없을 때까지 반복한다.
  */
 public class PrimeGenerator {}
 
