@@ -116,8 +116,6 @@
 
   - 해당 if문을 includeSetupsAndTeardownsIfTestPate로 변경하는 것은 같은 내용을 다르게 표현할 뿐 추상화 수준을 바꾸지는 않는 것
 
-    ~~ifTest로 끝내도 되는데 왜 Pate라고 했을까,,~~
-
     
 
 ##### 추상화 수준은 하나로!
@@ -323,8 +321,7 @@ public class EmployeeFactoryImpl implements EmployeeFactory {
 
   - 인수가 3개는 당연히 2개 보다도 어려움
   - assertEquals(1.0, amount, .001)은 괜찮다?
-    - (추후 정리 필요)
-
+  
 - 인수 객체
 
   - 인수가 2-3개 필요하다면 일부를 독자적 클래스 변수로 선언할 것을 고려
@@ -503,10 +500,6 @@ if (attributeExists("username")) {
 
   - try/catch 블록은 코드 구조에 혼란을 일으키며, 정상 동작과 오류 처리 동작을 뒤섞음
   - try/catch 블록을 별도 함수로 뽑아내는 편이 더 좋음
-
-  ~~최상단 try/catch문을 어디에 선언해야 하는가?~~
-
-  ~~하위 추상 레벨의 메서드에서 Exception Class를 어떻게 정의하고 이 에러를 받는 try/catch 블록은 어느 레벨에서 정의할 것인가?~~
 
 - 오류도 한 가지 작업이다
 
