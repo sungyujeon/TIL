@@ -106,7 +106,15 @@ public class Geometry {
 
 - 단점
   - 만약 새로운 도형을 추가하고 싶다면 Geometry 클래스에 속한 메서드를 모두 고쳐야 함
-  - ~~고쳐야 하는 예시 코드 추가해야 함~~
+  
+    ```java
+    public class Geometry {
+        public double area() {}
+        public double perimeter() {}
+    }
+    ```
+  
+    - 다른 도형 클래스, 예컨데 Pentagon 클래스가 추가된다면 area(), perimeter() 메서드 모두에서 Pentagon 클래스의 구현을 해주어야 한다는 점에서, Geometry 클래스에 속한 모든 메서드를 고쳐야 한다고 한 것임
 
 
 
@@ -166,7 +174,7 @@ public class Circle implements Shape {
     }
     ```
 
-    - perimeter() 메서드를 추가하고 싶다면 Shape 인터페이스를 구현하는 모든 클래스의 perimeter() 메서드를 구현해야 함(최소한 override 해야 함)
+    - perimeter() 메서드를 추가하고 싶다면 Shape 인터페이스를 구현하는 모든 클래스의 perimeter() 메서드를 구현해야 함(최소한 override는 해야 함)
 
 
 
@@ -234,8 +242,6 @@ final String ouputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
 >
 > 여러 객차가 한 줄로 이어진 기차처럼 보이기 때문
 
-- ~~[G36] 예시 추가~~
-
 - 개선
 
   ```java
@@ -250,7 +256,7 @@ final String ouputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
 
   - 하지만 이러한 개선도 디미터 법칙을 위반하는지 여부는 Context, Options, ScratchDir이 객체인지, 자료구조인지 여부에 달렸다!
 
-  - ~~<b>객체</b>라면 내부 구조를 숨겨야 하므로 디미터 법칙을 위반한다~~ <b>왜??????</b>
+  - <b>객체</b>라면 내부 구조를 숨겨야 하므로 디미터 법칙을 위반한다
 
   - <b>자료구조</b>라면 내부 구조를 노출하므로 디미터 법칙이 적용되지 않음
 
@@ -258,7 +264,7 @@ final String ouputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
     final String outputDir = ctxt.options.scratchDir.absolutePath;
     ```
 
-- 추가 개선
+- 개선 시 고려사항
 
   ```java
   // bad1
@@ -268,9 +274,6 @@ final String ouputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
   // bad2
   // getScratchDirectoryOption() 메서드가 객체가 아닌 자료 구조를 반환한다고 가정하므로 혼란스러움
   ctxt.getScratchDirectoryOption().getAbsolutePath();
-  
-  // better
-  BufferedOutputStream bos = ctxt.createScratchFileStream(classFileName);
   ```
 
   - Context, Options, ScratchDir이 객체라면 디미터 법칙을 위반하므로
@@ -284,9 +287,17 @@ final String ouputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
     BufferedOutputStream bos = new BufferedOutputStream(fout);
     ```
 
-    - 결론적으로 임시 디렉터리의 절대 경로를 얻으려는 이유는 임시 파일을 생성하기 위함이므로
-    - Context 객체에게 해당 메서드 기능을 추가하는 것이 최종 개선된 코드
-      - 이로써 Context는 내부 구조를 드러내지 않고, 모듈에서 해당 메서드는 자신이 몰라야 하는 여러 객체를 탐색할 필요가 없어짐
+    - 결론적으로 임시 디렉터리의 절대 경로를 얻으려는 이유는 임시 파일을 생성하기 위함
+
+- 최종 개선
+
+  ```java
+  // better
+  BufferedOutputStream bos = ctxt.createScratchFileStream(classFileName);
+  ```
+
+  - Context 클래스에서 해당 기능을 구현하는 메서드를 추가하는 것이 객체지향적이고, 디미터 법칙을 지키는 것
+  - 이로써 Context는 내부 구조를 드러내지 않고, 모듈에서 해당 메서드는 자신이 몰라야 하는 여러 객체를 탐색할 필요가 없어짐
 
 - 정리
   - 자료구조는 무조건 함수 없이 공개 변수만 포함하고
