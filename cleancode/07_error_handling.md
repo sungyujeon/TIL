@@ -35,7 +35,7 @@ public class DeviceController {
 	}
 }
 
-// good
+//good
 public class DeviceController {
 	
 	public void sendShutDown() {
@@ -44,20 +44,20 @@ public class DeviceController {
 		} catch (DeviceShutDownError e) {
 			logger.log(e);
 		}
+	}
 		
-		private void tryToShutDown() throws DeviceShutDownError {
-			DeviceHandle handle = getHandle(DEV1);
-			DeviceRecord record = retrieveDeviceRecord(handle);
-			
-			pauseDevice(handle);
-			clearDeviceWorkQueue(handle);
-			closeDevice(handle);
-		}
+	private void tryToShutDown() throws DeviceShutDownError {
+		DeviceHandle handle = getHandle(DEV1);
+		DeviceRecord record = retrieveDeviceRecord(handle);
 		
-		private DeviceHandle getHandle(DeviceID id) {
-			//...
-			throw new DeviceShutDownError("Invalid handle for: " + id.toString());
-		}
+		pauseDevice(handle);
+		clearDeviceWorkQueue(handle);
+		closeDevice(handle);
+	}
+	
+	private DeviceHandle getHandle(DeviceID id) {
+		//...
+		throw new DeviceShutDownError("Invalid handle for: " + id.toString());
 	}
 }
 ```
@@ -174,10 +174,8 @@ public List<RecordedGrip> retrieveSection(String sectionName) {
 
 ### 예외에 의미를 제공하라
 
-
-
 - 예외를 던질 때는 전후 상황을 충분히 덧붙인다
-- 이를 통해 발생 원인과 위치 찾기가 쉬워진다
+- 이를 통해 발생 원인과 위치를 찾기가 쉬워진다
 - 자바는 모든 예외에 호출 스택을 제공하지만, 오류 메시지에 정보(실패한 연산 이름, 실패 유형 등)를 담아 예외와 함께 던지는 것이 좋다
 - 로깅 기능을 사용한다면 catch 블록에서 오류를 기록하도록 충분한 정보를 넘겨준다
 
