@@ -113,6 +113,43 @@ public List<RecordedGrip> retrieveSection(String sectionName) {
 
 ### 미확인(unchecked) 예외를 사용하라
 
+> checked vs unchecked
+>
+> ```java
+> // checked
+> class MyError {
+> 	
+> 	public void start() {
+> 		throwError();  // compile error
+> 	}
+> 	
+> 	private void throwError() throws IOException {
+> 		throw new IOException("IOException occured");
+> 	}
+> }
+> 
+> // unchecked(구현을 강제하지 않음)
+> class MyError {
+> 	
+> 	public void start() {
+> 		throwError();
+> 	}
+> 	
+> 	private void throwError() throws NullPointerException {
+> 		throw new NullPointerException("NullPointerException occured");
+> 	}
+> }
+> ```
+>
+> - checked
+>   - RuntimeException을 상속하지 않는 클래스
+>   - Compile 시점에 확인
+>   - 반드시 예외 처리 해야함
+> - unchecked
+>   - RuntimeException을 상속하는 클래스
+>   - Runtime 시점에 확인
+>   - 명시적으로 예외처리 하지 않아도 됨
+
 - 기존의 확인된 예외
 
   - 메서드를 선언할 때 메서드가 반환할 예외를 모두 열거
@@ -129,6 +166,9 @@ public List<RecordedGrip> retrieveSection(String sectionName) {
   - 일반적인 애플리케이션은 의존성이라는 비용이 이익보다 크다
 
 - 미확인 예외
+
+  - 실예시 코드 필요
+
 
 
 
@@ -316,3 +356,9 @@ public class MetricsCalculator {
 - 오류 처리를 프로그램 논리와 분리하면
   - 튼튼하고 깨끗한 코드 작성할 수 있음
   - 독립적인 추론이 가능해지며 코드 유지보수성도 크게 높아짐
+
+
+
+##### 참고할 만한 글
+
+[exception handling anti pattern](https://itblackbelt.wordpress.com/2006/04/17/exception-handling-antipatterns-by-tim-mccune/)
