@@ -148,5 +148,5 @@ public String toString() {
 
 ##### String method
 
-- [string method](./etc/string-method.md)
+- [string method](./string-method.md)
 
