@@ -380,4 +380,5 @@ public class MetricsCalculator {
 
 ##### 참고할 만한 글
 
-[exception handling anti pattern](https://itblackbelt.wordpress.com/2006/04/17/exception-handling-antipatterns-by-tim-mccune/)
+[Exception-Handling Antipatterns by Tim McCune](./exception-handling-antipatterns.md)
+
