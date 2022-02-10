@@ -12,7 +12,7 @@
 
 mybatis 연동 및 기본 설정 - Controller.java - Service.java - DAO.java - Mapper.xml
 
-- View(Nexacro)
+- View
 
   nexacro X-API transaction을 통해 통신. url(e.g. /cm/cmm/retrieveIfRsltList.do)로 request mapping된 함수 호출.
 
@@ -49,35 +49,22 @@ mybatis 연동 및 기본 설정 - Controller.java - Service.java - DAO.java - M
   
   ```java
   @Controller
-  public class IfRsltRgstController extends SoBaseController {
+  public class testController {
       
-      @Resource(name="ifRsltRgstService")
-  	private IfRsltRgstService ifRsltRgstService;
+      @Resource(name="testService")
+  	private testService testService;
       
-      /**
-  	 * IfRslt등록 조회
-  	 * @param nexaDto
-  	 * @return ModelAndView
-  	 */
-  	@RequestMapping(value="/cm/cmm/retrieveIfRsltList.do")
-  	public ModelAndView retrieveIfRsltRgstList(NexacroMapDTO nexaDto) throws Exception{
+  	@RequestMapping(value="/test/action.do")
+  	public ModelAndView getUsers(TestDTO testDTO) throws Exception{
   		
   		ModelAndView mav = null;
   		
   		try {
-  			Map <String, DataSetMap> outDataset = getOutDataSet(nexaDto);
-  			Map <String, DataSetMap> inDataset = getInDataSet(nexaDto);
-  			Map <String, Object> inVar = getInVar(nexaDto);
-  			
-  			/**-------비즈니스 로직 시작-------*/
-  			ifRsltRgstService.retrieveIfRsltList(outDataset, inDataset, inVar);
-  			/**-------비즈니스 로직 끝  -------*/
-  			
-  			mav = sendClient(nexaDto, "0", "");
-  			
+  			testService.getUsers();
+  			mav = sendClient(testDTO, "0", "");  // 정상 흐름
   		}catch (Exception e) {
   			logger.error(e, e);
-  			mav = sendClient(nexaDto, "-1", TraceID.getTxID());
+  			mav = sendClient(testDTO, "-1", TraceID.getTxID());  // 오류 흐름
   		}
   		
   		return mav;
@@ -85,43 +72,36 @@ mybatis 연동 및 기본 설정 - Controller.java - Service.java - DAO.java - M
   }
   ```
   
-  - `IfRsltRgstController`에서 `retrieveIfRsltRgstList` 함수를 호출
-  - 위 함수에서 비지니스 로직 수행
-  - nexaDto에 대응하는 inDataset, outDataset을 java의 Map 타입으로 변환하여 사용
+  - `testController`에서 `getUsers` 메서드를 호출
+  - 위 메서드에서 비지니스 로직 수행
   
 - Service
   
   service에서 resource 설정을 통해 DAO 객체 할당
   
   ```java
-  public interface IfRsltRgstService {
-      // interface 조회 function
-      void retrieveIfRsltList(Map<String, DataSetMap> outDataset, Map <String, DataSetMap> inDataset, Map <String, Object> inVarMap) throws Exception;
+  public interface testService {
+      // interface 조회 method
+      void getUsers() throws Exception;
       
       // ...
   }
   ```
   
   ```java
-  @Service("ifRsltRgstService")
-  public class IfRsltRgstServiceImpl extends SoBaseService implements IfRsltRgstService {
-      @Resource(name="ifRsltRgstDAO")
-  	private IfRsltRgstDAO ifRsltDAO;
+  @Service("testService")
+  public class testServiceImpl extends SoBaseService implements testService {
+      @Resource(name="testDAO")
+  	private TestDAO testDAO;
       
       @Override
-  	public void retrieveIfRsltList(Map<String, DataSetMap> outDataset, Map<String, DataSetMap> inDataset, Map<String, Object> inVarMap) throws Exception {
-  		
-  		Map map = getMap(inDataset, "ds_input");
-  		
-  		List <Map> records = ifRsltDAO.selectIfRsltList(map);
-  		
-  		sendController(outDataset, "ds_output", records); 
-  		
+  	public void getUsers() throws Exception {
+  		List <Map> records = testDAO.getUsers(map);
   	} 
   }
   ```
   
-  - inDataset 기반 map 객체를 DAO 함수에 인자로 전달 -> 해당 함수로 DB 결과 리스트(records) 반환
+  - map 객체를 DAO 메서드에 인자로 전달 -> 해당 메서드로 DB 결과 리스트(records) 반환
   - soBaseService에 정의된 sendController 함수에 outDataset format과 실제 결과인 records 전달 -> outDataset에 records put
   
   - 최종 결과인 outDataset이 controller에 전달
@@ -131,10 +111,10 @@ mybatis 연동 및 기본 설정 - Controller.java - Service.java - DAO.java - M
   mybatis mapping을 통해 sql 수행한 결과값(list) 리턴
   
   ```java
-  @Repository("ifRsltRgstDAO")
-  public class IfRsltRgstDAO extends EgovAbstractMapper {
-      public List selectIfRsltList(Map params) throws Exception {
-      	return selectList("ifRsltRgstDAO.selectIfRsltList", params);
+  @Repository("testDAO")
+  public class TestDAO extends EgovAbstractMapper {
+      public List getUsers(Map params) throws Exception {
+      	return selectList("testDAO.getUsers", params);
       } 
   }
   ```
@@ -164,8 +144,8 @@ mybatis 연동 및 기본 설정 - Controller.java - Service.java - DAO.java - M
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "WEB-INF/dtd/mybatis-3-mapper.dtd">
-    <mapper namespace="sampleDAO">
-        <select id="sampleDAO.selectSample">
+    <mapper namespace="testDAO">
+        <select id="testDAO.getUsers">
         </select>
     </mapper>
     ```
@@ -212,7 +192,7 @@ mybatis 연동 및 기본 설정 - Controller.java - Service.java - DAO.java - M
   - 컬럼명이 프로퍼티명과 다르다면 SQL 구문에 별칭 지정 가능
 
     ```xml
-    <select id="selectUsers" resultType="User">
+    <select id="getUsers" resultType="User">
       select
         user_id             as "id",
         user_name           as "userName",

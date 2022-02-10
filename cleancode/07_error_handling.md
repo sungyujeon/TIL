@@ -1,11 +1,32 @@
 # 오류 처리
 
-> 오류 처리는 프로그램에 반드시 필요한 요소 중 하나
+> [오류 코드보다 예외를 사용하라](#오류-코드보다-예외를-사용하라)
 >
-> 깨끗한 코드와 오류 처리는 연관성이 있음
+> [Try-Catch-Finally 문부터 작성하라](#Try-Catch-Finally-문부터-작성하라)
 >
-> - 오류 처리 코드로 인해 프로그램 논리를 이해하기 어려워진다면 깨끗한 코드라고 할 수 없음
-> - 여기저기 흩어진 오류 처리 코드 때문에 실제 코드가 하는 일을 파악하기 어렵게 해서는 안됨
+> [미확인(unchecked) 예외를 사용하라](#미확인(unchecked)-예외를-사용하라)
+>
+> [예외에 의미를 제공하라](#예외에-의미를-제공하라)
+>
+> [호출자를 고려해 예외 클래스를 정의하라](#호출자를-고려해-예외-클래스를-정의하라)
+>
+> [정상 흐름을 정의하라](#정상-흐름을-정의하라)
+>
+> [null을 반환하지 마라](#null을-반환하지-마라)
+>
+> [null을 전달하지 마라](#null을-전달하지-마라)
+>
+> [결론](#결론)
+
+
+
+오류 처리는 프로그램에 반드시 필요한 요소 중 하나
+
+깨끗한 코드와 오류 처리는 연관성이 있음
+
+- 오류 처리 코드로 인해 프로그램 논리를 이해하기 어려워진다면 깨끗한 코드라고 할 수 없음
+
+- 여기저기 흩어진 오류 처리 코드 때문에 실제 코드가 하는 일을 파악하기 어렵게 해서는 안됨
 
 
 
@@ -359,4 +380,5 @@ public class MetricsCalculator {
 
 ##### 참고할 만한 글
 
-[exception handling anti pattern](https://itblackbelt.wordpress.com/2006/04/17/exception-handling-antipatterns-by-tim-mccune/)
+[Exception-Handling Antipatterns by Tim McCune](./exception-handling-antipatterns.md)
+
