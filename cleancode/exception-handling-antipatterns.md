@@ -2,7 +2,6 @@
 
 > 이 글은 다음의 글을 번역한 것입니다. [Exception-Handling Antipatterns by Tim McCune](https://itblackbelt.wordpress.com/2006/04/17/exception-handling-antipatterns-by-tim-mccune/)
 >
-> ~~번역중~~
 
 
 
@@ -395,35 +394,54 @@ public String foo() {
 ##### Ignoring InterruptedException
 
 ```java
+// bad
 while (true) {
-try {
-    Thread.sleep(100000);
-} catch (InterruptedException e) {}
+    try {
+        Thread.sleep(100000);
+    } catch (InterruptedException e) {}
+    doSomethingCool();
+}
+
+// good
+while (true) {
+    try {
+        Thread.sleep(100000);
+    } catch (InterruptedException e) {
+        break;
+    }
     doSomethingCool();
 }
 ```
 
-InterruptedException is a clue to your code that it should stop whatever it’s doing. Some common use cases for a thread getting interrupted are the active transaction timing out, or a thread pool getting shut down. Instead of ignoring the InterruptedException, your code should do its best to finish up what it’s doing, and finish the current thread of execution. So to correct the example above:
+- InterruptedException은 어떤 작업을 수행하고 있던지 중지해야 한다는 단서
+- thread가 interrupted 되는 사례는 active transaction timing out 또는 thread pool 종료
+- InterruptedException을 무시하는 대신, 하던 작업을 마치고 현재 실행 thread를 종료시켜야 함
 
-while (true) {
-try {
-Thread.sleep(100000);
-} catch (InterruptedException e) {
-break;
-}
-doSomethingCool();
-}
+> InterruptedException is a clue to your code that it should stop whatever it’s doing. Some common use cases for a thread getting interrupted are the active transaction timing out, or a thread pool getting shut down. Instead of ignoring the InterruptedException, your code should do its best to finish up what it’s doing, and finish the current thread of execution. So to correct the example above:
 
-Relying on getCause()
 
-Example:
 
+
+
+##### Relying on getCause()
+
+```java
 catch (MyException e) {
-if (e.getCause() instanceof FooException) {
+    if (e.getCause() instanceof FooException) {
 …
+```
 
-The problem with relying on the result of getCause is that it makes your code fragile. It may work fine today, but what happens when the code that you’re calling into, or the code that it relies on, changes its underlying implementation, and ends up wrapping the ultimate cause inside of another exception? Now calling getCause may return you a wrapping exception, and what you really want is the result of getCause().getCause(). Instead, you should unwrap the causes until you find the ultimate cause of the problem. Apache’s commons-lang project provides ExceptionUtils.getRootCause() to do this easily.
+- getCause()의 결과에 의존하면 코드를 취약하게 만듦
+- 호출하는 코드 또는 해당 코드가 의존하는 코드가 구현을 변경하고 궁극적 원인을 다른 예외 내부에 wrapping하면 문제가 생김
+- getCause를 호출하면 wrapping exception을 반환할 것이고, 실제로 얻어야 할 것은 getCause().getCause()가 될 것임
+- Apache의 commons-lang 프로젝트는 이를 쉽게 수행할 수 있도록 ExceptionUtils.getRootCause()를 제공
 
-Conclusion
+> The problem with relying on the result of getCause is that it makes your code fragile. It may work fine today, but what happens when the code that you’re calling into, or the code that it relies on, changes its underlying implementation, and ends up wrapping the ultimate cause inside of another exception? Now calling getCause may return you a wrapping exception, and what you really want is the result of getCause().getCause(). Instead, you should unwrap the causes until you find the ultimate cause of the problem. Apache’s commons-lang project provides ExceptionUtils.getRootCause() to do this easily.
 
-Good exception handling is a key to building robust, reliable systems. Avoiding the antipatterns that we’ve outlined here helps you build systems that are maintainable, resilient to change, and that play well with other systems.
+
+
+## Conclusion
+
+좋은 예외 처리는 튼튼하고 안정적인 시스템을 구축하는 데 중요하다. 위에서 설명한 antipatterns를 피하는 것이 유지보수 가능하고, 변화에 탄력적이며 다른 시스템과 잘 어울리는 시스템을 구축하는 데 도움이 된다.
+
+> Good exception handling is a key to building robust, reliable systems. Avoiding the antipatterns that we’ve outlined here helps you build systems that are maintainable, resilient to change, and that play well with other systems.
