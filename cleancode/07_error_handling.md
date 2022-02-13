@@ -382,3 +382,9 @@ public class MetricsCalculator {
 
 [Exception-Handling Antipatterns by Tim McCune](./exception-handling-antipatterns.md)
 
+- 실무 예외 처리 패턴
+  - getOrElse
+    - 예외 대신 기본값을 리턴한다(null이 아닌 기본값, 도메인에 맞는 기본 값)
+  - getOrElseThrow
+    - null 대신 예외를 던진다(기본값이 없다면)
+
