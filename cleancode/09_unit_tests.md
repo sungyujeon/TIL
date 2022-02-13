@@ -301,3 +301,35 @@
 - 테스트는 적시에 작성해야 함
 - 단위 테스트는 테스트하려는 실제 코드를 구현하기 직전에 구현
 
+
+
+### 기타
+
+- 테스트 라이브러리
+
+  - JUnit: for unit test
+  - Mockito: for mocking dependencies
+  - Wiremock: for stubbing out external services
+  - Pact: for writing CDC tests
+  - Selenium: for writing UI-driven end-to-end tests
+  - REST-assured: for writing REST API-driven end-to-end tests
+
+- Test Double
+
+  > 테스트에서 원본 객체를 대신하는 객체
+
+  - Stub
+    - 원래의 구현을 최대한 단순한 것으로 대체한다
+    - 테스트를 위해 프로그래밍된 항목에만 응답한다
+  - Spy
+    - Stub의 역할을 하면서 호출에 대한 정보를 기록한다
+    - 이메일 서비스에서 메시지가 몇 번 전송되었는지 확인할 때
+  - Mock
+    - 행위를 검증하기 위해 가짜 객체를 만들어 테스트하는 방법
+    - 호출에 대한 동작을 프로그래밍할 수 있다
+    - Stub은 상태를 검증하고 Mock은 행위를 검증한다
+
+- Given-when-then 패턴 사용
+  - given: 테스트에 대한 pre-condition
+  - when: 테스트하고 싶은 동작 호출
+  - then: 테스트 결과 확인
