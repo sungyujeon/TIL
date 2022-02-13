@@ -9,6 +9,7 @@
   - 테스트 개념마다 한 개념만 테스트하라
 - [F.I.R.S.T](#F.I.R.S.T)
   - Fast / Independent / Repeatable / Self-Validating / Timely
+- [기타](#기타)
 
 
 
