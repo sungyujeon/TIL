@@ -158,7 +158,7 @@
       controller.tic();
       assertTrue(hw.heaterState);
       assertTrue(hw.blowerState);
-      assertTrue(hw.collerState);
+      assertTrue(hw.coolerState);
       assertTrue(hw.hiTempAlarm);
       assertTrue(hw.loTempAlarm);
     }
@@ -244,14 +244,14 @@
 
   ```java
   public void testAddMonths() {
-    SerailDate d1 = SerialDate.createInstance(31, 5, 2004);
+    SerialDate d1 = SerialDate.createInstance(31, 5, 2004);
   
-    SerialDate d2 = SerailDate.addMonths(1, d1);
+    SerialDate d2 = SerialDate.addMonths(1, d1);
     assertEquals(30, d2.getDayOfMonth());
     assertEquals(6, d2.getMonth());
     assertEqauls(2004, d2.getYYYY());
   
-    SerialDate d3 = SerailDate.addMonths(2, d1);
+    SerialDate d3 = SerialDate.addMonths(2, d1);
     assertEquals(31, d3.getDayOfMonth());
     assertEquals(7, d3.getMonth());
     assertEqauls(2004, d3.getYYYY());
