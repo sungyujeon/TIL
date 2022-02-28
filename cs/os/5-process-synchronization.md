@@ -2,13 +2,13 @@
 
 ### 데이터의 접근
 
-![](../../../Labs/cs-study/운영체제/src/sync-data-access.png)
+![](./src/sync-data-access.png)
 
 
 
 ### Race Condition
 
-![](../../../Labs/cs-study/운영체제/src/race-condition.png)
+![](./src/race-condition.png)
 
 - 프로세스는 각각 독립적으로 실행되므로 다른 주소공간을 사용하기 때문에 문제가 생기지 않는 다는 입장도 있음
 - 문제가 있는 경우는, 시스템 콜을 통해 프로세스가 직접 할 수 없는 일을 os에 맡겨서 공유되는 데이터에 접근하게 될 때임. 운영체제 안에 있는 데이터를 공유할 때 cpu가 하나여도 문제가 발생할 수 있음
@@ -19,19 +19,19 @@
 
 - kernel 수행 중 인터럽트 발생 시
 
-  ![](../../../Labs/cs-study/운영체제/src/race-condition-interrupt.png)
+  ![](./src/race-condition-interrupt.png)
 
   - 해결: interrupt를 disable/enable 하게 변경시킴
 
 - Process가 system call 하여 kernel mode로 수행 중인데, context switch가 일어나는 경우
 
-  ![](../../../Labs/cs-study/운영체제/src/race-condition-systemcall.png)
+  ![](./src/race-condition-systemcall.png)
 
-  ![](../../../Labs/cs-study/운영체제/src/race-condition-systemcall2.png)
+  ![](./src/race-condition-systemcall2.png)
 
 - Multiprocessor에서 shared memory 내의 kernel data
 
-  ![](../../../Labs/cs-study/운영체제/src/race-condition-multiprocessor.png)
+  ![](./src/race-condition-multiprocessor.png)
 
 
 
@@ -50,7 +50,7 @@
 
 - Example of a Race Condition
 
-  ![](../../../Labs/cs-study/운영체제/src/race-condition-example.png)
+  ![](./src/race-condition-example.png)
 
 - The Critical-Section Problem
 
@@ -306,7 +306,7 @@
 
 ##### Bounded-Buffer Problem
 
-![](../../../Labs/cs-study/운영체제/src/bounded-buffer-problem.png)
+![](./src/bounded-buffer-problem.png)
 
 
 
@@ -337,7 +337,7 @@
 
 ##### Dining-Philosophers Problem
 
-![](../../../Labs/cs-study/운영체제/src/dining-philosophers-problem.png)
+![](./src/dining-philosophers-problem.png)
 
 - 앞의 solution의 문제점
   - Deadlock 가능성이 있음
@@ -361,7 +361,7 @@
 > - 자발적 협력(voluntary cooperation)이 필요함
 > - 한 번의 실수가 모든 시스템에 치명적 영향
 
-![](../../../Labs/cs-study/운영체제/src/monitor.png)
+![](./src/monitor.png)
 
 - 동시 수행중인 프로세스 사이에서 abstract data type의 안전한 공유를 보장하기 위한 high-level synchronization contstruct
 - 모니터 내에서는 한 번에 하나의 프로세스만이 활동 가능
@@ -384,5 +384,5 @@
 
 ##### Dining Philosophers -> Monitor
 
-![](../../../Labs/cs-study/운영체제/src/monitor-dining-philosophers.png)
+![](./src/monitor-dining-philosophers.png)
 
