@@ -129,9 +129,23 @@
     - 한 스레드나 여러 스레드가 굉장히 오랫동안 혹은 영원히 자원을 기다리는 것
   - 데드락(Deadlock)
     - 여러 스레드가 각기 필요한 자원을 기다리고 있는 상태
+    - 추가
+      - 일련의 프로세스들이 서로가 가진 자원을 기다리며 block된 상태
+      - 발생 4가지 조건
+        - Mutual exclusion : 매 순간 하나의 프로세스만이 자원 사용 가능
+        - No preemption : 프로세스는 자원을 스스로 내어놓을 뿐 강제로 빼앗기지 않음
+        - Hold and wait : 자원을 가진 프로세스가 다른 자원을 기다릴 때 보유 자원을 놓지 않고 계속 가지고 있음
+        - Circular wait : 자원을 기다리는 프로세스 간에 사이클이 형성되어야 함
+      - deadlock 처리 방법
+        - 위 4가지 조건 중 하나라도 만족되지 않게 함
+        - Resource Allocation Graph algorithm, Banker's Algorithm 등을 사용
+      - Deadlock Ignorance
+        - Deadlock을 시스템이 책임지지 않음(UNIX를 포함한 대부분의 OS가 채택)
+        - Deadlock이 매우 드물게 발생하므로 이에 대한 조치 자체가 더 큰 overhead일 수 있음
+        - 만약 시스템에 deadlock이 발생한 경우 시스템이 비정상적으로 작동하는 것을 사람이 느낀 후 직접 process를 죽이는 등의 방법으로 대처
   - 라이브락(Livelock)
     - 락을 거는 단계에서 각 스레드가 서로를 방해
-
+  
 - <b>생산자-소비자(Producer-Consumer) </b>
 
   ![](./src/bounded-buffer-problem.png)
@@ -193,7 +207,7 @@
   - 문제
     - 읽고 쓰는 문제는 보통 DB에서 일어나므로 db를 예시로 했는데, 동시에 read/write가 발생하면 데이터가 망가짐
   - 해결
-    - mutext `db`, counting semaphore `readcount`를 두어 해결
+    - mutex `db`, counting semaphore `readcount`를 두어 해결
     - 방법1 : read process가 없을 때 write 실행. 하지만 이는 write process에서 starvation 발생 가능
     - 방법2 : 일정 길이의 readcount 까지만 read를 허용하고(마치 신호등과 같이 일정 수준만 통행하게 만든 후 교차), 이후 write 수행
 
