@@ -6,6 +6,7 @@
 >
 > - [refactoring.guru](https://refactoring.guru/design-patterns/strategy/java/example)
 > - head first design patterns 서적
+> - [https://github.com/gmlwjd9405](https://gmlwjd9405.github.io/2018/09/06/java-comparable-and-comparator.html)
 
 
 
@@ -126,17 +127,36 @@ public class Collections {
     }
   }
 }
+
+@FunctionalInterface
+public interface Comparator<T> {
+  int compare(T o1, T o2);
+}
+
+public class myComparator implements Comparator {
+  
+  @Override
+  public int compare(Object obj1, Object obj2) {
+    if (obj1.x > obj2.x) {
+      return 1;  // x에 대해 오름차순
+    } else if (obj1.x == obj2.x) {
+      if (obj1.y < obj2.y) {  // y에 대해서는 내림차순
+        return 1;
+      }
+    }
+    return -1;
+  }
+}
 ```
 
 - Collections.sort()에 의해 호출된 Comparator.compare()
 - `Context` - Collections
 - `Stratety` - Comparator
 - `ConcreteStrategy` - (otherClasses implements Comparator).compare()
-  - 추상 메서드 compare() override 하여 여러 algorithm 사용
+  - 추상 메서드 compare() override 하여 여러 algorithm 사용 가능
+  - compare() method override 한 customComparator를 Collections.sort() 인자로 전달하면 해당 comparator algorithm에 따라 sort 시행
 
-~~정확한 내용인지 다시 확인 필요~~
-
-
+<br>
 
 ## Pros and Cons
 
