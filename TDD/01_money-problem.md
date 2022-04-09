@@ -16,6 +16,10 @@
 > - [테스트의 진행: 다중 통화 표현하기](#테스트의-진행:-다중 통화-표현하기)
 > - [테스트의 진행: times() 중복](#테스트의-진행:-times()-중복)
 > - [테스트의 진행: 불필요한 subclass](#테스트의-진행:-불필요한-subclass)
+> - [테스트의 진행: 다중 통화 더하기](#테스트의-진행:-다중-통화-더하기)
+> - [테스트의 진행: 통화 변환](#테스트의-진행:-통화-변환)
+> - [테스트의 실제: 서로 다른 통화 더하기](#테스트의-실제:-서로-다른-통화-더하기)
+> - [테스트의 실제: 최종 구현](#테스트의-실제:-최종-구현)
 
 <br>
 
@@ -521,7 +525,521 @@ public class Franc extends Money {
 - times() 까지 상위 클래스로 끌어올렸으므로 생성자만 있는 Dollar, Franc 서브 클래스는 불필요하게 됨
 - 이로써 불필요한 subclass와, subclass를 사용한 불필요 테스트 코드를 제거함
 
+<br>
 
+### 테스트의 진행: 다중 통화 더하기
 
+- 테스트 코드 작성
 
+  ```java
+  @Test
+  void testSimpleAddition() {
+      Money sum = Money.dollar(5).plus(Money.dollar(5));
+      assertEquals(Money.dollar(10), sum);
+  }
+  ```
 
+  - 간단하게 $5 + $5 = $10을 테스트하는 코드를 작성
+  - 이 때 plus() 메서드가 구현되어 있지 않기 때문에 오류 발생
+
+- plus() 메서드 구현
+
+  ```java
+  Money plus(Money addend) {
+      return Money.dollar(this.amount + money.amount);
+  }
+  ```
+
+  - Money 인스턴스를 반환하는 plus() 메서드 구현
+  - 이후 원하는 방식으로 동작하게 하는 메타포를 생각
+    - 두 Money의 합을 나타내는 객체를 만드는데, 
+    - 하나는 Money의 합을 마치 지갑처럼 취급하는 것(한 지갑에는 금액과 통화가 다른 여러 화폐들이 들어갈 수 있음)
+    - 다른 하나는 (2+3) * 5 와 같은 수식이고 수식의 가장 작은 단위가 Money가 됨. 연산의 결과로 Expression들이 생기는데, 그 중 하나는 Sum(합)이 됨. 연산이 완료되면 환율을 이용해 Expression을 단일 통화로 축약할 수 있음
+
+- 테스트 코드 재작성
+
+  ```java
+  @Test
+  void testSimpleAddition() {
+      Money five = Money.dollar(5);
+      Expression sum = five.plus(five);
+      Bank bank = new Bank();
+      Money reduced = bank.reduce(sum, "USD");
+      assertEquals(Money.dollar(10), reduced);
+  }
+  
+  public interface Expression {}
+  
+  public class Bank {
+  
+      Money reduce(Expression source, String to) {
+          return null;
+      }
+  }
+  
+  public class Money implements Expression {
+      //...
+  
+      Expression plus(Money addend) {
+          return new Money(amount + addend.amount, currency);
+      }
+  }
+  ```
+
+  - reduce(축약)란 책임(더하는 expression을 기축 통화로 변환하는 작업)은 은행이 맡게 함
+  - 은행 클래스를 생성
+  - Expression이란 수식은 다른 부분에 대해 모를 수 있도록 하면 테스트하기 쉬울 뿐 아니라 재활용하거나 이해하기에 모두 쉬운 상태로 남아 있을 수 있으므로 interface로 만든다
+
+  - Money 클래스가 Expression을 implements 하고, plus() 메서드의 반환 타입을 Expression으로 만듦(두 money의 합은 expression이어야 하기 때문/ e.g. 2USD + 3CHF )
+  - 이 과정을 통해 컴파일이 되고, 바로 실패한다! 만세! 진전이다!!
+
+- 가짜 구현
+
+  ```java
+  Money reduce(Expression source, String to) {
+      return Money.dollar(10);
+  }
+  ```
+
+  - 테스트가 통과(초록 막대)하게끔 가짜로 구현한다
+  - 지금까지의 과정을 통해
+    - 큰 테스트를 작은 테스트($5 + 10CHF 에서 $5 + $5)로 줄여서 발전을 나타낼 수 있도록 함
+    - 필요한 계산(computation)에 대한 메타포들을 신중히 생각해봄
+    - 새 메타포에 기반하여 기존의 테스트를 재작성
+    - 테스트를 빠르게 컴파일
+    - 테스트 실행
+
+- 리팩토링
+
+  - 테스트 코드 작성
+
+    ```java
+    @Test
+    void testPlusReturnsSum() {
+        Money five = Money.dollar(5);
+        Expression result = five.plus(five);
+        Sum sum = (Sum) result;
+        assertEquals(five, sum.augend);  // 피가산수(augend): 덧셈의 첫 인자
+        assertEquals(five, sum.addend);
+    }
+    ```
+
+    - Money.plus()는 그냥 Money가 아닌 Expression(Sum)을 반환해야 함
+
+  - Sum 구현
+
+    ```java
+    public class Sum implements Expression {
+        Money augend;
+        Money addend;
+    
+        Sum(Money augend, Money addend) {
+            this.augend = augend;
+            this.addend = addend;
+        }
+    }
+    
+    public class Money implements Expression {
+        //...
+    
+        Expression plus(Money addend) {
+            return new Sum(this, addend);
+        }
+    }
+    ```
+
+    - Sum 클래스를 구현하고 Money.plus()가 Sum을 반환하게 함
+    - 이를 위해 Sum도 Expression을 implements
+    - 이제 Bank.reduce()는 Sum을 전달받고, 만약 Sum이 가지고 있는 Money 통화가 모두 동일하고 reduce를 통해 얻어내고자 하는 Money의 통화 역시 같다면, 결과는 Sum 내에 있는 Money 들의 amount를 합친 값을 갖는 Money 객체여야 함
+
+  - reduceSum
+
+    ```java
+    @Test
+    void testReduceSum() {
+        Expression sum = new Sum(Money.dollar(3), Money.dollar(4));
+        Bank bank = new Bank();
+        Money result = bank.reduce(sum, "USD");
+        assertEquals(Money.dollar(7), result);
+    }
+    ```
+
+    - 위 가정에 맞추어 Dollar 통화를 맞추어 테스트 코드를 만들었는데, Bank.reduce() 메서드를 `return Money.dollar(10)`으로 가짜 구현했으므로 테스트에 통과하지 못함
+    - 즉, result는 두 Money의 합이어야 하고 통화는 우리가 축약하는 통화여야 함
+
+  - Bank.reduce() 재구현
+
+    ```java
+    public class Bank {
+    
+        Money reduce(Expression source, String to) {
+            Sum sum = (Sum) source;
+            int amount = sum.augend.amount + sum.addend.amount;
+            return new Money(amount, to);
+        }
+    }
+    ```
+
+    - 위 코드는 두 가지 이유로 지저분함
+
+      - 캐스팅: 모든 Expression에 대해 작동해야 함
+      - public field와 그 field 들에 대한 두 단계에 걸친 레퍼런스
+
+    - 리팩토링
+
+      ```java
+      public class Bank {
+      
+          Money reduce(Expression source, String to) {
+              Sum sum = (Sum) source;
+              return sum.reduce(to);
+          }
+      }
+      
+      public class Sum implements Expression {
+          //...
+      
+          public Money reduce(String to) {
+              int amount = augend.amount + addend.amount;
+              return new Money(amount, to);
+          }
+      }
+      ```
+
+      - Expression의 합을 구하는 책임(reduce)을 Sum 클래스로 넘김
+
+  - Money class casting 코드 중복 제거
+
+    ```java
+    @Test
+    void testReduceMoney() {
+        Bank bank = new Bank();
+        Money result = bank.reduce(Money.dollar(1), "USD");
+        assertEquals(Money.dollar(1), result);
+    }
+    
+    public interface Expression {
+        Money reduce(String to);
+    }
+    
+    public class Money implements Expression {
+        public Money reduce(String to) {
+            return this;
+        }
+    }
+    
+    public class Bank {
+        Money reduce(Expression source, String to) {
+            return source.reduce(to);
+        }
+    }
+    
+    // Expression.reduce() 없었다면 했어야할 클래스 캐스팅
+    public class Bank {
+        Money reduce(Expression source, String to) {
+            if (source instanceof Money) {
+                return (Money) source;  // Money 객체는 Sum 으로 클래스 캐스팅이 안되므로
+            }
+            Sum sum = (Sum) source;
+            return sum.reduce(to);
+        }
+    }
+    ```
+
+    - 기존 Money 클래스에는 reduce가 없어서, Expression이 Money 타입을 갖는 인스턴스라면 클래스 형변환을 해주어야 했는데, Expression에서 reduce 메서드를 정의하고 Money 클래스에서 이를 구현함으로써 형변환 없이 Bank.reduce()를 동작하게 할 수 있음
+
+<br>
+
+### 테스트의 진행: 통화 변환
+
+- 테스트 코드 작성
+
+  ```java
+  @Test
+  void testReduceMoneyDifferentCurrency() {
+      Bank bank = new Bank();
+      bank.addRate("CHF", "USD", 2);
+      Money result = bank.reduce(Money.franc(2), "USD");
+      assertEquals(Money.dollar(1), result);
+  }
+  ```
+
+- addRate() 구현
+
+  - addRate() 구현 전 CHF, USD 하드 코딩 구현
+
+    ```java
+    // reduce() 구현하는 Money, Expression에 bank 인자 전달
+    
+    public class Money implements Expression {
+        //...
+      
+        public Money reduce(Bank bank, String to) {
+            int rate = (currency.equals("CHF") && to.equals("USD")) ? 2 : 1;
+            return new Money(amount / rate, to);
+        }
+    }
+    ```
+
+    - reduce() 구현하는 Money, Expression에 bank 인자 추가
+    - Money.reduce()에 CHF, USD 환율 변환하는 가짜 코드 구현
+
+  - Bank.rate()
+
+    ```java
+    pupblic class Bank {
+        int rate(String from, String to) {
+            return from.equals("CHF") && to.equals("USD") ? 2 : 1;
+        }
+    }
+    
+    public class Money implements Expression {
+        //...
+      
+        public Money reduce(Bank bank, String to) {
+            int rate = bank.rate(currency, to);
+            return new Money(amount / rate, to);
+        }
+    }
+    ```
+
+    - Bank.rate() 메서드에서 우선 CHF, USD 환율 변환하는 가짜 코드 구현하고, 위 Money 클래스에서는 Bank에 rate 계산 로직 책임을 담당하게 함
+
+  - 환율표
+
+    ```java
+    private class Pair {
+        private String from;
+        private String to;
+    
+        Pair(String from, String to) {
+            this.from = from;
+            this.to = to;
+        }
+    
+        public int hashCode() {
+            return 0;
+        }
+        
+        public boolean equals(Object object) {
+            Pair pair = (Pair) object;
+            return from.equals(pair.from) && to.equals(pair.to);
+        }
+    }
+    ```
+
+    - Bank에서 환율표를 가지고 있다가 필요할 때 찾아볼 수 있게 함
+    - 두 개의 통화와 환율을 매핑시키는 해시 테이블 사용
+    - 이 때 키를 위한 객체(from, to 정보를 담는 Pair 객체)를 따로 만듦
+    - hashCode가 0을 리턴하는 것은 안 좋지만 우선은 구현을 위해 놔둠
+
+  - addRate() 구현
+
+    ```java
+    public class Bank {
+        private Hashtable rates = new Hashtable();
+    
+        //...
+    
+        void addRate(String from, String to, int rate) {
+            rates.put(new Pair(from, to), new Integer(rate));
+        }
+    }
+    ```
+
+    - rates를 저장하는 hashtable을 만들고 addRate() 메서드 구현
+
+  - addRate() 사용
+
+    ```java
+    int rate(String from, String to) {
+        if (from.equals(to)) return 1;
+    
+        Integer rate = (Integer) rates.get(new Pair(from, to));
+        return rate.intValue();
+    }
+    ```
+
+    - 같은 종류의 통화를 처리하기 위해 분기
+    - rate 구할 시 rates hashtable에서 조회
+
+<br>
+
+### 테스트의 실제: 서로 다른 통화 더하기
+
+> 이제 드디어 여러 통화 단위에 대한 합산 결과를 하나의 통화 단위로 보여주는 시스템을 구축할 수 있게 할 것
+
+- 테스트 코드 작성
+
+  ```java
+  @Test
+  void testMixedAddition() {
+      // given
+      Money fiveBucks = Money.dollar(5);
+      Money tenFrancs = Money.franc(10);
+      Bank bank = new Bank();
+      bank.addRate("CHF", "USD", 2);
+  
+      // when
+      Money result = bank.reduce(fiveBucks.plus(tenFrancs), "USD");
+  
+      // then
+      assertEquals(Money.dollar(10), result);
+  }
+  ```
+
+  - 현재는 컴파일이 되지 않는 상태
+
+- Sum.reduce() 수정
+
+  ```java
+  public class Sum implements Expression {
+      //...
+  
+      public Money reduce(Bank bank, String to) {
+          int amount = augend.reduce(bank, to).amount + addend.reduce(bank, to).amount;
+          return new Money(amount, to);
+      }
+  }
+  ```
+
+  - 통화 단위를 바꿔주는 reduce() 메서드 호출을 통해 맞추면 테스트 통과
+
+- Expression 인터페이스 사용
+
+  ```java
+  @Test
+  void testMixedAddition() {
+      // given
+      Expression fiveBucks = Money.dollar(5);
+      Expression tenFrancs = Money.franc(10);
+      Bank bank = new Bank();
+      bank.addRate("CHF", "USD", 2);
+  
+      // when
+      Money result = bank.reduce(fiveBucks.plus(tenFrancs), "USD");
+  
+      // then
+      assertEquals(Money.dollar(10), result);
+  }
+  
+  public class Sum implements Expression {
+      Expression augend;
+      Expression addend;
+  
+      Sum(Expression augend, Expression addend) {
+          this.augend = augend;
+          this.addend = addend;
+      }
+  }
+  
+  public interface Expression {
+      //...
+      Expression plus(Expression addend);
+  }
+  
+  public class Money implements Expression {
+      //...
+  
+      @Override
+      public Expression plus(Expression addend) {
+          return new Sum(this, addend);
+      }
+  }
+  
+  public class Sum implements Expression {
+      //...
+  
+      @Override
+      public Expression plus(Expression addend) {
+          return null;
+      }
+  ```
+
+  - Sum 하기 위한 Expression인 augend, addend의 타입을 모두 Expression으로 변경하고, 테스트 코드에서도 Expression으로 변경한다
+  - 테스트 코드에서 fiveBucks.plus() 메서드가 없기 때문에 Expression을 구현하는 클래스에서 plus를 재정의한다
+  - plus()를 재정의한 코드는 우선 stub 구현으로 남겨두고 할 일 목록에 넣어둔다
+
+<br>
+
+### 테스트의 실제: 최종 구현
+
+- 테스트 코드 구현
+
+  ```java
+  @Test
+  void testSumPlusMoney() {
+      // given
+      Expression fiveBucks = Money.dollar(5);
+      Expression tenFrancs = Money.franc(10);
+      Bank bank = new Bank();
+      bank.addRate("CHF", "USD", 2);
+  
+      // when
+      Expression sum = new Sum(fiveBucks, tenFrancs).plus(fiveBucks);
+      Money result = bank.reduce(sum, "USD");
+  
+      // then
+      assertEquals(Money.dollar(15), result);
+  }
+  ```
+
+- Sum.plus() 스텁 구현
+
+  ```java
+  public class Sum implements Expression {
+      //...
+  
+      @Override
+      public Expression plus(Expression addend) {
+          return new Sum(this, addend);
+      }
+  }
+  ```
+
+  - stub 구현을 했던 plus() 메서드를 Sum 인스턴스 반환하도록 구현하면 테스트 통과
+
+- Sum.times() 구현
+
+  ```java
+  @Test
+  void testSumTimes() {
+      // given
+      Expression fiveBucks = Money.dollar(5);
+      Expression tenFrancs = Money.franc(10);
+      Bank bank = new Bank();
+      bank.addRate("CHF", "USD", 2);
+  
+      // when
+      Expression sum = new Sum(fiveBucks, tenFrancs).times(2);
+      Money result = bank.reduce(sum, "USD");
+  
+      // then
+      assertEquals(Money.dollar(20), result);
+  }
+  
+  public interface Expression {
+      //...
+      Expression times(int multiplier);
+  }
+  
+  public class Money implements Expression {
+      //...
+  
+      @Override
+      public Expression times(int multiplier) {
+          return new Money(amount * multiplier, currency);
+      }
+  }
+  
+  public class Sum implements Expression {
+      //...
+      
+      @Override
+      public Expression times(int multiplier) {
+          return new Sum(augend.times(multiplier), addend.times(multiplier));
+      }
+  }
+  ```
+
+  - Expression에 times() 메서드 선언 후 구현하는 클래스 Money, Sum 에서 override
