@@ -1,8 +1,18 @@
 # 객체 생성과 파괴
 
 > [ITEM 01. 생성자 대신 정적 팩터리 메서드를 고려하라](#ITEM-01.-생성자-대신-정적-팩터리-메서드를-고려하라)
+>
+> [ITEM 02. 생성자에 매개변수가 많다면 빌더를 고려하라](#ITEM-02.-생성자에-매개변수가-많다면-빌더를-고려하라)
+>
+> [ITEM 03. private 생성자나 열거 타입으로 싱글턴임을 보증하라](#ITEM-03.-private-생성자나-열거-타입으로-싱글턴임을-보증하라)
+>
+> [ITEM 04. 인스턴스화를 막으려거든 private 생성자를 사용하라](#ITEM-04.-인스턴스화를-막으려거든-private-생성자를-사용하라)
+>
+> [ITEM 05. 자원을 직접 명시하지 말고 의존 객체 주입을 사용하라](#ITEM-05.-자원을-직접-명시하지-말고-의존-객체-주입을-사용하라)
 
+<br>
 
+<br>
 
 ## ITEM 01. 생성자 대신 정적 팩터리 메서드를 고려하라
 
@@ -135,7 +145,413 @@
   - getType과 newType의 간결한 버전
   - List\<Compaint> litany = Collections.list(legacyLitany);
 
+<br>
 
+<br>
 
+## ITEM 02. 생성자에 매개변수가 많다면 빌더를 고려하라
 
+#### builder가 없다면?
 
+- 정적 팩토리와 생성자가 동일하게 갖고 있는 제약
+
+  - 선택적 매개변수가 많을 때 적절히 대응하기 어려움
+
+- 점층적 생성자 패턴(telescoping consturctor pattern)
+
+  - 필수 매개변수만 받는 생성자, 필수 매개변수와 선택 매개변수 n개를 받는 생성자
+
+  - 예시
+
+    ```java
+    public class NutritionFacts {
+        private final int servingSize;
+        private final int servings;
+        private final int calories;
+        private final int fat;
+        //...
+    
+        public NutritionFacts(int servingSize, int servings) {
+            this(servingSize, servings, 0);
+        }
+    
+        public NutritionFacts(int servingSize, int servings, int calories) {
+            this(servingSize, servings, calories, 0);
+        }
+    
+        public NutritionFacts(int servingSize, int servings, int calories, int fat) {
+            this.servingSize = servingSize;
+            this.servings = servings;
+            this.calories = calories;
+            this.fat = fat;
+        }
+    }
+    ```
+
+    - 인스턴스 생성 시 원하는 매개변수를 포함하는 생성자 중 가장 짧은 것을 골라 호출하면 됨
+    - 단점
+      - 설정하길 원하지 않는 매개변수까지 포함할 수 있음
+      - 매개변수 개수가 많아지면 클라이언트 코드를 작성하거나 읽기 어려움
+
+- 자바빈즈 패턴(JavaBeans pattern)
+
+  - 매개변수가 없는 생성자를 객체로 만든 후, setter 메서들을 호출해 매개변수 값 설정
+
+  - 예시
+
+    ```java
+    public class NutritionFacts {
+        // 매개변수들은 (기본값이 있다면) 기본값으로 초기화
+        private int servingSize = -1;  // 필수; 기본값 없음
+        private int servings = -1;     // 필수; 기본값 없음
+        private int calories = 0;
+    
+        public NutritionFacts() {}
+        
+        public void setServingSize(int val) { servingSize = val; }
+        public void setServings(int val) { servings = val; }
+        public void setCalories(int val) { calories = val; }
+    }
+    
+    NutritionFacts cocaCola = new NutritionFacts();
+    cocaCola.setServingSize(240);
+    cocaCola.setServings(8);
+    cocaCola.setCalories(100);
+    ```
+
+    - 단점
+      - 객체 하나를 만드려면 메서드를 여러 개 호출해야 함
+      - 객체가 완전히 생성되기 전까지는 일관성(consistency)이 무너진 상태에 놓임
+      - 클래스를 불변 아이템으로 만들 수 없음
+      - 스레드 안전성을 얻으려면 프로그래머가 추가 작업을 해줘야 함
+    - 단점 완화를 위해 freezing 하기도 하지만 실전에서는 거의 안 씀(freeze 메서드를 확실히 호출해줬는지를 컴파일러가 보증할 방법이 없어 런타임 오류에 취약)
+
+<br>
+
+### Builder pattern
+
+> *Builder는 생성할 클래스 안에 정적 멤버 클래스로 만드는게 보통*
+>
+> - 클라이언트는 필요한 객체를 직접 만드는 대신, 필수 매개변수만으로 생성자(혹은 정적 팩토리)를 호출해 빌더 객체를 얻음
+>
+> - 이후 빌더 객체가 제공하는 일종의 세터 메서드로 원하는 선택 매개변수를 설정
+>
+> - 마지막으로 매개변수 없는 build 메서드 호출해 필요한 (보통은 불변인) 객체 얻음
+
+```java
+public class NutritionFacts {
+
+    private final int servingSize;
+    private final int servings;
+    private final int calories;
+
+    private NutritionFacts(Builder builder) {
+        servingSize = builder.servingSize;
+        servings = builder.servings;
+        calories = builder.calories;
+    }
+
+    private static class Builder {
+        // 필수 매개변수
+        private final int servingSize;
+        private final int servings;
+
+        // 선택 매개변수 - 기본값으로 초기화
+        private int calories = 0;
+
+        public Builder(int servingSize, int servings) {
+            this.servingSize = servingSize;
+            this.servings = servings;
+        }
+
+        public Builder calories(int val) {
+            calories = val;
+            return this;
+        }
+
+        public NutritionFacts build() {
+            return new NutritionFacts(this);
+        }
+    }
+}
+
+NutritionFacts nutritionFacts = new NutritionFacts.Builder(240, 8)
+  																								.calories(100)
+  																								.build();
+```
+
+- NutritionFacts 클래스는 불변이며 모든 매개변수의 기본값들을 한 곳에 모아둠
+- 빌더의 세터 메서드들은 빌더 자신을 반환하므로 연쇄적으로 호출 가능(fluent API or method chaining)
+
+<br>
+
+### 장점
+
+- 파이썬/스칼라의 명명된 선택적 매개변수(named optional parameters)를 흉내낸 것
+
+- 계층적으로 설계된 클래스와 함께 쓰기에 유용 [참고](https://github.com/sungyujeon/effective-java/blob/sungyu/src/main/java/com/effectiveJava/chapter01/item02/builder/hierarchical/Pizza.java)
+
+  - Pizza.Builder는 재귀적 타입 한정을 이용한 제네릭 타입
+
+  - 추상 메서드인 self()를 더해 하위 클래스에서 형변환하지 않고도 메서드 연쇄를 지원
+
+  - 공변 반환 타이핑(covariant return typing) : 하위 클래스의 메서드가 상위 클래스의 메서드가 정의한 반환 타입이 아닌, 그 하위 타입을 반환하는 기능
+
+    <b>>> 클라이언트가 형변환에 신경쓰지 않고 빌더를 사용할 수 있음</b>
+
+- 가변인수(varargs) 매개변수를 여러 개 사용할 수 있음
+
+<br>
+
+### 단점
+
+- 객체를 만드려면 그에 앞서 빌더부터 만들어야 함(빌더 생성 비용이 크지는 않지만 성능에 민감한 상황에서는 문제가 될 수 있음)
+
+- 점층적 생성자 패턴보다는 코드가 장황해서 매개변수가 4개 이상은 되어야 값어치를 함
+
+  (하지만 API는 시간이 지날수록 매개변수가 많아지는 경향이 있음)
+
+<br>
+
+### 주의사항
+
+- 불변식(invariant)을 보장하려면 빌더로부터 매개변수를 복사한 후 해당 객체 필드들도 검사해야 함
+
+- 검사해서 잘못된 점 발견하면 어떤 매개변수가 잘못되었는지를 자세히 알려주는 `IllegalArgumentException`을 던지면 됨
+
+  *불변식 : 프로그램이 실행되는 동안 반드시 만족해야 하는 조건, 주어진 조건 내에서만 변경을 허용*
+
+<br>
+
+<br>
+
+## ITEM 03. private 생성자나 열거 타입으로 싱글턴임을 보증하라
+
+> Singleton [참고](https://github.com/sungyujeon/TIL/blob/master/spring/spring-singleton.md)
+>
+> - 인스턴스를 오직 하나만 생성할 수 있는 클래스
+> - 예 : 함수와 같은 stateless 객체, 설계상 유일해야 하는 시스템 컴포넌트 등
+
+### 싱글턴을 만드는 방법 3가지
+
+- public static 멤버가 final
+
+  ```java
+  public class Elvis {
+    
+      public static final Elvis INSTANCE = new Elvis();
+      
+      private Elvis() {}
+  }
+  ```
+
+  - private 생성자는 public static field인 Elvis.INSTANCE를 초기화할 때 한 번만 호출됨
+
+  - 예외적으로 reflection API AccessibleObject.setAccessible 사용해 private 생성자 호출 가능
+
+    (이를 막으려면 생성자 수정하여 두번째 객체 생성 시 예외 throw)
+
+  - 장점
+
+    - 해당 클래스가 싱글턴임이 API에 명확히 드러남
+    - 간결함
+
+  - 단점
+
+    - 싱글턴이 아니게 변경 불가능
+
+- static factory method
+
+  ```java
+  public class Elvis {
+      private static final Elvis INSTANCE = new Elvis();
+  
+      private Elvis() {}
+      
+      private static Elvis getInstance() {
+          return INSTANCE;
+      }
+  }
+  ```
+
+  - Elvis.getInstance는 항상 같은 객체의 참조를 반환
+  - reflection API 예외 위와 동일
+  - 장점
+    - 코드가 변경될 때 API를 바꾸지 않고 싱글턴이 아니게 변경할 수 있음
+    - 정적 팩토리를 제네릭 싱글턴으로 만들 수 있음(아이템 30)
+    - 정적 펙토리의 메서드 참조를 공급자(supplier)로 사용(아이템 43, 44)
+
+- 원소가 하나인 열거 타입 선언
+
+  ```java
+  public enum Elvis {
+      INSTANCE;
+  }
+  ```
+
+  - 장점
+
+    - public field 방식과 비슷하지만 더 간결하고 추가 노력 없이 직렬화 가능
+    - 심지어 아주 복잡한 직렬화 상황이나 리플렉션 공격에도 제2의 인스턴스 생기지 않음
+    - 대부분의 상황에서 원소가 하나뿐인 열거 타입이 싱글턴을 만드는 가장 좋은 방법
+
+  - 단점
+
+    - 만들려는 싱글턴이 Enum 외의 클래스를 상속해야 한다면 사용 불가능
+
+      (단, 열거 타입이 다른 인터페이스를 구현하도록 선언할 수는 있음)
+
+<br>
+
+### 단점
+
+- 클래스를 싱글턴으로 만들면 이를 사용하는 클라이언트를 테스트하기가 어려워짐
+
+  (타입을 인터페이스로 정의한 다음 그 인터페이스를 구현해서 만든 싱글턴이 아니라면 싱글턴 인스턴스를 가짜(mock) 구현으로 대체할 수 없기 때문)
+
+- 싱글턴 클래스를 직렬화하려면 추가 작업을 해야 함
+
+  - 단순히 Serializable 구현 선언으로 부족
+
+  - 모든 인스턴스 필드를 일시적(transient)로 선언하고 readResolve 메서드 제공해야 함(아이템 89)
+
+  - 이렇게 하지 않으면 직렬화된 인스턴스를 역직렬화할 때마다 새로운 인스턴스 생성
+
+    ```java
+    public class Elvis {
+        private static final Elvis INSTANCE = new Elvis();
+    
+        private Elvis() {}
+    
+        private static Elvis getInstance() {
+            return INSTANCE;
+        }
+      
+        private Object readResolve() {
+            // '진짜' Elvis를 반환하고, 가짜 Elvis는 가비지 컬렉터에 맡김
+            return INSTANCE;
+        }
+    }
+    ```
+
+<br>
+
+<br>
+
+## ITEM 04. 인스턴스화를 막으려거든 private 생성자를 사용하라
+
+```java
+public class UtilityClass {
+    // 기본 생성자가 만들어지는 것을 막는다(인스턴스화 방지용).
+    private UtilityClass() {
+        throw new AssertionError();
+    }
+}
+```
+
+- 인스턴스를 만들기 위한 클래스가 아닌 경우
+
+- 예) 정적 메서드와 정적 필드만을 담은 클래스(utility class)
+
+  - 기본 타입 값이나 배열 관련 메서드들을 모아놓은 클래스 java.lang.Math / java.util.Arrays
+
+  - 특정 인터페이스를 구현하는 객체를 생성해주는 정적 메서드(혹은 팩터리) java.util.Collections
+
+  - final 클래스
+
+- 참고사항
+
+  - 추상 클래스로 인스턴스화 막을 수 없음
+
+    - 하위 클래스를 만들어 인스턴스화 할 수 있기 때문
+
+    - 추상 클래스를 본 사용자가 상속해서 쓰라는 뜻으로 오해할 수 있어 더 큰 문제
+
+  - 상속을 불가능하게 함
+
+    - 모든 생성자는 상위 클래스의 생성자를 호출하므로 private 생성자 사용 시 상속 불가능
+
+<br>
+
+<br>
+
+## ITEM 05. 자원을 직접 명시하지 말고 의존 객체 주입을 사용하라
+
+### SpellChecker 예시
+
+- bad example
+
+  ```java
+  // bad
+  // 정적 유틸리티를 잘못 사용한 예
+  public class SpellChecker {  // static final 이용 
+      private static final Lexicon dictionary = ...;
+      
+      private SpellChecker() {}
+      
+      public static boolean isValid(String word) { ... }
+      public static List<String> suggestions(String typo) { ... }
+  }
+  
+  public class SpellChecker {  // 정적 팩토리 이용
+      private static final Lexicon dictionary = ...;
+  
+      private SpellChecker() {}
+      public static SpellChecker INSTANCE = new SpellChecker();
+  
+      public static boolean isValid(String word) { ... }
+      public static List<String> suggestions(String typo) { ... }
+  }
+  ```
+
+  - SpellChecker는 dictionary에 의존하는데, 두 방식 모두 사전을 단 하나만 사용한다고 가정한다는 점에서 확장성이 없음
+
+- good example(의존 객체 주입)
+
+  ```java
+  public class SpellChecker {
+      
+      private final Lexicon dictionary;
+      
+      public SpellChecker(Lexicon dictionary) {
+          this.dictionary = Objects.requireNonNull(dictionary);
+      }
+      
+      public boolean isValid(String word) { ... }
+      public List<String> suggestion(String typo) { ... }
+  }
+  ```
+
+  - SpellChecker가 여러 dictionary 사용할 수 있도록 구성
+
+<br>
+
+### 장점
+
+- 위 예시처럼 dictionary라는 딱 하나의 자원만 사용하지만, 자원이 몇 개든 의존 관계가 어떻든 상관없이 잘 작동
+
+- 불변 보장하여 (같은 자원을 사용하려는) 여러 클라이언트가 의존 객체들을 안심하고 공유 가능
+- 유연성과 테스트 용이성 개선
+- 생성자, 정적 팩토리, 빌더 모두에 똑같이 응용 가능
+
+- 예시: 생성자에 자원 팩토리를 넘겨주는 방식
+
+  - Factory Method pattern -> Supplier\<T> 인터페이스
+
+  - Supplier\<T>를 입력으로 받는 메서드는 일반적으로 한정적 와일드카드 타입(bounded wildcard type, 아이템 31)을 사용해 팩토리의 타입 매개변수를 제한해야 함
+
+  - 이를 통해 자신이 명시한 타입의 하위 타입이라면 무엇이든 생성할 수 있는 팩토리 넘길 수 있음
+
+  - 클라이언트가 제공한 팩토리가 생성한 Tile들로 구성된 Mosaic 만드는 메서드
+
+    ```java
+    Mosaic create(Supplier<? extends Tile) tileFactory { ... }
+    ```
+
+<br>
+
+### 단점
+
+- 의존성이 너무 많으면(가령 수 천개) 코드를 어지럽게 만들기도 함
+
+  (Spring 같은 의존 객체 주입 프레임워크 사용하면 어지러움 개선 가능)
