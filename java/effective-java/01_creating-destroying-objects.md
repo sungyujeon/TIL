@@ -20,7 +20,7 @@
 >
 > ```java
 > public static Boolean valueOf(boolean b) {
->     return (b ? TRUE : FALSE);
+>        return (b ? TRUE : FALSE);
 > }
 > ```
 
@@ -45,7 +45,7 @@
     new BigInteger(int, int, Random);
     
     // static factory method
-    BingInteger.probablePrime(int, Random);
+    BigInteger.probablePrime(int, Random);
     ```
 
 - 호출될 때마다 인스턴스를 새로 생성하지 않아도 됨
