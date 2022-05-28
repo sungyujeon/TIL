@@ -375,11 +375,31 @@ NutritionFacts nutritionFacts = new NutritionFacts.Builder(240, 8)
   ```
 
   - Elvis.getInstance는 항상 같은 객체의 참조를 반환
+
   - reflection API 예외 위와 동일
+
   - 장점
+
     - 코드가 변경될 때 API를 바꾸지 않고 싱글턴이 아니게 변경할 수 있음
+
     - 정적 팩토리를 제네릭 싱글턴으로 만들 수 있음(아이템 30)
+
     - 정적 펙토리의 메서드 참조를 공급자(supplier)로 사용(아이템 43, 44)
+
+      ```java
+      public class Concert {
+      
+          public void start(Supplier<Singer> singerSupplier) {
+              Singer singer = singerSupplier.get();
+              singer.sing();
+          }
+      
+          public static void main(String[] args) {
+              Concert concert = new Concert();
+              concert.start(Elvis::getInstance);
+          }
+      }
+      ```
 
 - 원소가 하나인 열거 타입 선언
 
