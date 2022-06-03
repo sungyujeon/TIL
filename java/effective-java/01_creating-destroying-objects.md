@@ -9,6 +9,10 @@
 > [ITEM 04. 인스턴스화를 막으려거든 private 생성자를 사용하라](#ITEM-04.-인스턴스화를-막으려거든-private-생성자를-사용하라)
 >
 > [ITEM 05. 자원을 직접 명시하지 말고 의존 객체 주입을 사용하라](#ITEM-05.-자원을-직접-명시하지-말고-의존-객체-주입을-사용하라)
+>
+> [ITEM 06. 불필요한 객체 생성을 피하라](#ITEM-06.-불필요한-객체-생성을-피하라)
+>
+> [ITEM 07. 다 쓴 객체 참조를 해제하라](#ITEM-07.-다-쓴-객체-참조를-해제하라)
 
 <br>
 
@@ -575,3 +579,162 @@ public class UtilityClass {
 - 의존성이 너무 많으면(가령 수 천개) 코드를 어지럽게 만들기도 함
 
   (Spring 같은 의존 객체 주입 프레임워크 사용하면 어지러움 개선 가능)
+
+<br>
+
+## ITEM 06. 불필요한 객체 생성을 피하라
+
+> 똑같은 기능을 매번 생성하는 것 보다는 객체 하나를 재사용하는 것이 나을 때가 많음
+>
+> 특히 불변 객체는 언제든 재사용 가능
+
+- 예시1
+
+  ```java
+  // bad
+  String s = new String("hi");
+  Boolean(value);
+  
+  // good
+  String s = "hi";
+  Boolean.valueOf(value);
+  ```
+
+  - bad 코드는 실행될 때마다 인스턴스를 새로 만듦
+
+  - good 코드는 새로운 인스턴스를 매번 새로 만드는 대신 하나의 인스턴스를 사용하고, 같은 가상 머신 안에서 모든 코드가 같은 객체를 재사용함이 보장됨
+
+  - 불변 객체 뿐만이 아니라 가변 객체도 변경되지 않을 것임이 보장된다면 재사용 가능
+
+- 예시2
+
+  ```java
+  // bad
+  static boolean isRomanNumeral(String s) {
+      return s.matches("^(?=.)M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+  }
+  
+  // good
+  class RomanNumerals {
+      private static final Pattern ROMAN = Pattern.compile("^(?=.)M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$");
+      
+      static boolean isRomanNumeral(String s) {
+          return ROMAN.matcher(s).matches();
+      }
+  }
+  ```
+
+  - bad
+    - String.matches() 메서드는 정규표현식으로 문자열 형태를 확인하는 가장 쉬운 방법이지만, 성능이 중요한 상황에서 반복해 사용하기엔 적합하지 않음
+    - matches() 메서드가 내부에서 만드는 정규표현식용 Pattern 인스턴스는 곧바로 gc 대상이 됨
+    - Pattern은 입력받은 정규표현식에 해당하는 유한 상태 머신(finite state machine)을 만들기 때문에 인스턴스 생성 비용이 높음
+  - good
+    - isRomanNumeral이 빈번히 호출되는 상황에서 성능을 상당히 끌어올릴 수 있음
+    - 다만 isRomanNumeral 클래스가 초기화 후 한 번도 호출되지 않는다면 쓸데없이 초기화한 것이지만, 지연 초기화(lazy initialization)로 개선해도 성능은 크게 나아지지 않을 때가 많음
+
+- 예시3
+
+  - Adapter
+  - Map 인터페이스의 keySet 메서드
+
+- 예시4
+
+  - 오토박싱(auto boxing)은 불필요한 객체를 생성해 성능을 떨어뜨릴 수 있음
+  - 박싱된 기본 타입 보다는 기본 타입을 사용하고, 의도치 않은 오토박싱이 숨어들지 않도록 주의
+
+- 예시5
+
+  - 아주 무거운 객체가 아니라면 단순히 객체 생성을 피하고자 자신만의 객체 풀(pool)을 만들면 안됨
+  - 자체 객체 풀은 코드를 헷갈리게 하고, 메모리 사용량을 늘리고 성능을 떨어뜨림
+
+- 예외
+
+  - 최신 JVM은 성능이 좋으므로 프로그램의 명확성, 간결성, 기능을 위해서는 객체를 추가 생성하는 것은 일반적으로 좋은 일
+
+<br>
+
+## ITEM 07. 다 쓴 객체 참조를 해제하라
+
+- 예시1
+
+  ```java
+  public class Stack {
+      private Object[] elements;
+      private int size = 0;
+      private static final int DEFAULT_INITIAL_CAPACITY = 16;
+  
+      public Stack() {
+          elements = new Object[DEFAULT_INITIAL_CAPACITY];
+      }
+  
+      public void push(Object e) {
+          ensureCapacity();
+          elements[size++] = e;
+      }
+  
+      public Object pop() {
+          if (size == 0) {
+              throw new EmptyStackException();
+          }
+          return elements[--size];  // 메모리 누수의 원인
+      }
+  
+      private void ensureCapacity() {
+          if (elements.length == size) {
+              elements = Arrays.copyOf(elements, 2 * size - 1);
+          }
+      }
+  }
+  ```
+
+  - 위 Stack을 계속 사용하면 gc와 메모리 사용량이 늘어나 성능이 저하됨
+
+  - gc는 객체 뿐 아니라 그 객체가 참조하는 모든 객체를 회수하지 못함
+
+  - 참조 해제의 가장 좋은 방법은 유효 범위(scope) 밖으로 밀어내는 것
+
+  - 해결을 위해 해당 참조를 다 쓰면 null 할당(참조 해제)
+
+    ```java
+    // 위 예시에서 메모리 누수 방지
+    public Object pop() {
+        if (size == 0) {
+            throw new EmptyStackException();
+        }
+        Object result = elements[--size];  // 메모리 누수의 원인
+        elements[size] = null;    // 참조 해제
+        return result;
+    }
+    ```
+
+    - 이 방법은 또한 NullPointerException을 통해 null 접근에 대한 오류를 잡아냄
+
+    - 다만 객체 참조를 null 처리하는 일은 예외적인 경우이어야 함
+
+      (Stack 처럼 자기 메모리를 직접 관리하는 클래스에서 메모리 누수에 주의해야 함)
+
+- 예시2
+
+  - cache는 메모리 누수를 일으킬 수 있음
+
+  - key를 참조하는 동안에만 엔트리가 살아 있는 캐시가 필요한 상황이라면 WeakHashMap을 사용해 캐싱하라
+
+  - 시간이 지날수록 엔트리의 가치를 떨어뜨리는 방식을 사용하라
+
+    - 백그라운드 스레드 활용(e.g. Scheduled ThreadPoolExcutor)
+
+    - 캐시에 새 엔트리를 추가할 때 부수 작업 수행
+
+      (e.g. LinkedhashMap은 removeEldestEntry 메서드 활용)
+
+  - 더 복잡한 캐시를 만들고 싶다면 java.lang.ref 패키지 직접 활용
+
+- 예시3
+
+  - listener / callback 은 메모리 누수를 일으킬 수 있음
+  - 클라이언트가 콜백을 등록만 하고 명확히 해지하지 않으면 콜백은 계속 쌓임
+  - 콜백을 약한 참조(weak reference)로 저장하면 gc가 즉시 수거
+
+<br>
+
+[위로](#객체-생성과-파괴)
