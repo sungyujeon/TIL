@@ -1,4 +1,4 @@
-# 객체 생성과 파괴
+# 	객체 생성과 파괴
 
 > [ITEM 01. 생성자 대신 정적 팩터리 메서드를 고려하라](#ITEM-01.-생성자-대신-정적-팩터리-메서드를-고려하라)
 >
@@ -13,6 +13,10 @@
 > [ITEM 06. 불필요한 객체 생성을 피하라](#ITEM-06.-불필요한-객체-생성을-피하라)
 >
 > [ITEM 07. 다 쓴 객체 참조를 해제하라](#ITEM-07.-다-쓴-객체-참조를-해제하라)
+>
+> [ITEM 08. finalizer와 cleaner 사용을 피하라](#ITEM-08.-finalizer와-cleaner-사용을-피하라)
+>
+> [ITEM 09. try-finally 보다는 try-with-resources를 사용하라](#ITEM-09.-try-finally-보다는-try-with-resources를-사용하라)
 
 <br>
 
@@ -569,7 +573,7 @@ public class UtilityClass {
   - 클라이언트가 제공한 팩토리가 생성한 Tile들로 구성된 Mosaic 만드는 메서드
 
     ```java
-    Mosaic create(Supplier<? extends Tile) tileFactory { ... }
+    Mosaic create(Supplier<? extends Tile> tileFactory) { ... }
     ```
 
 <br>
@@ -579,6 +583,8 @@ public class UtilityClass {
 - 의존성이 너무 많으면(가령 수 천개) 코드를 어지럽게 만들기도 함
 
   (Spring 같은 의존 객체 주입 프레임워크 사용하면 어지러움 개선 가능)
+
+<br>
 
 <br>
 
@@ -650,6 +656,8 @@ public class UtilityClass {
 - 예외
 
   - 최신 JVM은 성능이 좋으므로 프로그램의 명확성, 간결성, 기능을 위해서는 객체를 추가 생성하는 것은 일반적으로 좋은 일
+
+<br>
 
 <br>
 
@@ -736,5 +744,151 @@ public class UtilityClass {
   - 콜백을 약한 참조(weak reference)로 저장하면 gc가 즉시 수거
 
 <br>
+
+<br>
+
+## ITEM 08. finalizer와 cleaner 사용을 피하라
+
+> 자바가 제공하는 두 가지 객체 소멸자 - finalizer, cleaner
+>
+> - finalizer는 자바 9에서 deprecated
+> - cleaner는 finalizer 보다 덜 위험하지만 여전히 예측할 수 없고 느리고 일반적으로 불필요
+
+<br>
+
+### 사용을 피하는 이유
+
+- finalizer와 cleaner가 즉시 수행된다는 보장이 없음
+  - 파일 닫기를 finalizer, cleaner에 맡기면 중대한 오류를 일으킬 수 있음
+  - finalizer, cleaner를 얼마나 신속히 수행할지는 전적으로 gc 알고리즘에 달림
+  - finalizer 스레드는 다른 애플리케이션 스레드보다 우선순위가 낮음. cleaner는 자신을 수행할 스레드를 제어할 수 있긴 하지만 여전히 백그라운드에서 수행되어 gc의 통제를 받음
+
+- 수행 시점 뿐 아니라 수행 여부도 보장하지 않음
+  - 상태를 영구적으로 수정하는 작업(e.g. db lock 해제 등)을 finalizer, cleaner에 의존하면 안됨
+  - System.gc, System.runFinalization 메서드도 실행 여부를 보장하진 않음
+
+- finalizer 동작 중 발생한 예외는 무시되고, 처리할 작업이 남았더라도 그 순간 종료
+  - catch 되지 않은 예외 때문에 해당 객체가 남을 수 있고, 다른 스레드가 이처럼 훼손된 객체를 사용하려하면 동작을 예측할 수 없음
+  - 보통은 잡지 못한 예외가 스레드를 주앋ㄴ시키고 스택 추적 내역을 출력하지만, finalizer는 경고조차 출력하지 않음
+  - cleaner는 자신의 스레드를 통제하므로 이러한 문제는 발생하지 않음
+
+- 성능을 저하시킴
+  - finalizer가 gc의 효율을 떨어뜨림
+  - 안전망 방식에서는 빠르지만, 이를 추가 구현해야 함
+
+- finalizer 공격에 노출되어 심각한 보안 문제 일으킴
+  - 생성자나 직렬화 과정(readObject, readResolve)에서 예외 발생하면 생성되다 만 객체에서 악의적인 하위클래스의 finalizer가 수행될 수 있음
+  - 이 finalizer는 정적 필드에 자신의 참조를 할당하여 gc가 수집하지 못하게 막을 수 있음
+  - final 클래스는 하위 클래스를 만들 수 없어서 안전하지만, final이 아닌 클래스를 finalizer 공격으로부터 방어하려면 아무 일도 하지 않는 finalize() 메서드를 만들고 final 선언해야 함
+
+
+<br>
+
+### finalize, cleaner의 대안
+
+- 파일이나 스레드 등 종료해야 할 자원을 담고 있는 객체의 클래스에서 AutoCloseable 구현 후 close() 메서드 호출
+- 예외가 발생해도 제대로 종료되도록 try-with-resources 사용
+
+<br>
+
+### finalizer, cleaner를 사용하는 경우
+
+- 자원의 소유자가 close 메서드를 호출하지 않는 것에 대비한 안전망 역할
+
+  - 클라이언트가 하지 않은 자원 회수를 늦게라도 해주는 것이 아예 안 하는 것보다는 낫다
+
+  - 일부 클래스는 안전망 역할의 finalizer 제공: FileInputStream, FileOutputStrema, threadPoolExecutor
+
+- native peer와 연결된 객체에서의 사용
+
+  - native peer는 일반 자바 객체가 네이티브 메서드를 통해 기능을 위임한 네이티브 객체
+  - native peer는 자바 객체가 아니므로 gc가 모름
+  - 단, 성능 저하를 감당할 수 있고 native peer가 심각한 자원을 가지고 있지 않을 때에만 해당
+
+- cleaner의 사용(try-with-resources를 사용하라)
+
+  - (Room, State 사례 생략)
+
+  - try-with-resources 사용
+
+    ```java
+    try (Room myRoom = new Room(7)) {
+        // do something
+    }
+    ```
+
+<br>
+
+<br>
+
+## ITEM 09. try-finally 보다는 try-with-resources를 사용하라
+
+> java library에는 close 메서드를 호출해 직접 닫아줘야 하는 자원이 많음
+>
+> (InputStream, OutputStream, java.sql.Connection 등)
+>
+> - 자원 닫기는 클라이언트가 놓치기 쉬워서 예측할 수 없는 성능 문제로 이어지기도 함
+> - 안전망으로 finalizer 활용하고는 있지만 자원 해제를 보장하지 않음
+
+- try-finally
+
+  ```java
+  // bad (전통적 자원 해제 방법)
+  static String firstLineOfFile(String path) throws IOException {
+      BufferedReader br = new BufferedReader(new FileReader(path));
+      try {
+          return br.readLine();
+      } finally {
+          br.close();
+      }
+  } 
+  // 2개 이상에서는 너무 지저분함
+  static void copy(String src, String dst) throws IOExcpetion {
+      InputStream in = new FileInputStream(src);
+      try {
+          OutputStream out = new FileOutputStream(dst);
+          try {
+              byte[] buf = new byte[BUFFER_SIZE];
+              int n;
+              while ((n = in.read(buf)) >= 0) {
+                  out.write(buf, 0, n);
+              }
+          } finally {
+              out.close();
+          }
+      } finally {
+          in.close();
+      }
+  }
+  ```
+
+  - close 메서드를 제대로 구현한 비율은 낮음
+
+  - try-finally 문이 중첩되면, 연쇄된 예외 처리가 복잡해짐
+
+- try-with-resources(since jdk 1.7)
+
+  ```java
+  // good
+  static String firstLineOfFile(String path) throws IOException {
+      try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+          return br.readLine();
+      }
+  }
+  
+  static void copy(String src, String dst) throws IOExcpetion {
+      try (InputStream in = new FileInputStream(src);
+           OutputStream out = new FileOutputStream(dst)) {
+          byte[] buf = new byte[BUFFER_SIZE];
+          int n;
+          while ((n = in.read(buf)) >= 0) {
+              out.write(buf, 0, n);
+          }
+      }
+  }
+  ```
+
+  - 이 구조를 사용하려면 해당 자원이 AutoCloseable 인터페이스를 구현해야 함
+  - 자바 라이브러리와 서드파티 라이브러리들은 이미 AutoCloseable을 구현하거나 확장해 둠
 
 [위로](#객체-생성과-파괴)
