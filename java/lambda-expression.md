@@ -183,4 +183,10 @@ Function<String, Boolean> f = obj::equals;  // 3
   }
   ```
 
-- ~~추가 작성 필요~~
+
+
+### 참고자료
+
+https://blogs.oracle.com/javamagazine/post/understanding-java-method-invocation-with-invokedynamic
+
+https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html
