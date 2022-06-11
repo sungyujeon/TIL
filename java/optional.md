@@ -50,3 +50,37 @@ Optional.orElseGet(Supplier<? extends T> other)  // parameter로 함수를 받�
 
 - 세부 [docs](https://docs.oracle.com/javase/10/docs/api/java/util/Optional.html) 참조
 
+
+
+<br>
+
+##### 주의점
+
+- API NOTE
+
+  ```java
+  Optional is primarily intended for use as a method return type where there is a clear need to represent "no result," and where using null is likely to cause errors. A variable whose type is Optional should never itself be null; it should always point to an Optional instance.
+  ```
+
+  - Optional은 기본적으로 method return type 으로 사용하기 위한 의도로 만들어짐
+  - '결과가 없음'을 나타내거나 null 사용 시 에러를 유발할 수 있는 때 사용하자는 것
+
+- isPresent() / get() --> ifPresent() / orElseGet(), orElseThrow()
+
+- orElse(T other) --> orElseGet(Supplier supplier)
+
+  ```java
+  public T orElseGet(Supplier<? extends T> supplier) {
+      return value != null ? value : supplier.get();
+  }
+  ```
+
+  - orElse() 에서는 Optional이 emtpy여도 실행되지만, orElseGet()은 값이 있을 때만 실행
+
+- Optional은 객체 생성 비용이 들어 단순 값을 얻을 목적이면 Optional 대신 null 비교
+
+- 위와 같은 이유로 컬렉션은 비어있는 컬렉션을 사용하라
+
+- Optional을 필드나 생성자, 인자로 사용하지 마라
+
+- 기본형 Optional의 사용을 고려하라
