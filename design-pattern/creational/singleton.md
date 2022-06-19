@@ -12,7 +12,7 @@
 
 ## UML
 
-![](/Users/sungyujeon/TIL/design-pattern/creational/src/singleton-uml.png)
+![](./src/singleton-uml.png)
 
 - `Singleton`
   - 싱글턴 클래스는 getInstance() 등의 유일한 인스턴스를 반환하는 static 메서드를 가짐
