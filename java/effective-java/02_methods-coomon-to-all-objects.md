@@ -15,6 +15,8 @@
 > [ITEM 12. toString을 항상 재정의하라](#ITEM-12.-toString을-항상-재정의하라)
 >
 > [ITEM 13. clone 재정의는 주의해서 진행하라](#ITEM-13.-clone-재정의는-주의해서-진행하라)
+>
+> [ITEM 14. Comparable을 구현할지 고려하라](#ITEM-14.-Comparable을-구현할지-고려하라)
 
 <br>
 
@@ -666,4 +668,96 @@
 <br>
 
 <br>
+
+## ITEM 14. Comparable을 구현할지 고려하라
+
+> Comparable을 구현했다는 것은 그 클래스의 인스턴스들에는 자연적인 순서(natural order)가 있음을 뜻함
+>
+> 알파벳, 숫자, 연대 같이 순서가 명확한 값 클래스를 작성한다면 반드시 Comparable 인터페이스를 구현하라
+
+##### Comparable interface
+
+```java
+public interface Comparable<T> {
+    public int compareTo(T o);
+}
+```
+
+- this 객체와 특정 객체의 순서를 비교한다. this 객체가 주어진 객체보다 작으면 음의 정수, 같으면 0, 크면 양의 정수를 반환한다.
+- 모든 객체에 대해 전역 동치 관계를 부여하는 equals 메서드와 달리 compareTo는 타입이 다른 객체를 전혀 신경쓰지 않아도 되며, 타입이 다른 객체가 주어지면 간단히 ClassCastException을 던져도 된다.
+- 기존 클래스를 확장한 구체 클래스에서 새로운 값 컴포넌트를 추가했다면 compareTo 규약을 지킬 방법이 없다. Comparable을 구현한 클래스를 확장해 값 컴포넌트를 추가하고 싶다면, 확장하는 대신 독립된 클래스를 만들고, 이 클래스에 원래 클래스의 인스턴스를 가리키는 필드를 둔 뒤 내부 인스턴스를 반환하는 메서드를 제공하라. 이렇게 하면 바깥 클래스에 우리가 원하는 compareTo 메서드를 구현할 수 있다.
+- compareTo 메서드로 수행한 동치성 테스트의 결과가 equals와 같아야 한다. 이를 잘 지키면, compareTo로 줄지은 순서와 equals의 결과가 일관되게 된다. 단, 이 클래스의 객체를 정렬된 컬렉션에 넣으면 해당 컬렉션이 구현한 인터페이스(Collection, Set, Map)에 정의된 동작과 엇박자를 낼 것이다.
+  - BigDecimal 을 예시로 보면, 빈 HashSet 인스턴스 생성 후 new BigDecimal("1.0")과 new Big Decimal("1.00") 차례로 추가하면, 이 두 BigDecimal은 equals 메서드로 비교하면 서로 다르기 때문에 HashSet은 원소를 2개 갖게 된다. 하지만 HashSet 대신 TreeSet을 사용하면 원소를 하나만 갖게 된다. compareTo 메서드로 비교하면 두 BigDecimal 인스턴스가 똑같기 때문이다.
+
+<br>
+
+##### 작성 요령
+
+- Comparable은 타입을 인수로 받는 제네릭 인터페이스이므로 compareTo 메서드의 인수 타입은 컴파일타임에 정해짐. 입력 인수의 타입을 확인하거나 형변환할 필요가 없다는 뜻이고, 인수의 타입이 잘못됐다면 컴파일 자체가 되지 않는다.
+
+- null을 인수로 넣어 호출하면 NPE를 던져야 함
+
+- compareTo 메서드는 각 필드가 동치인지를 비교하는 게 아니라 그 순서를 비교
+
+- 객체 참조 필드를 비교하려면 compareTo 메서드를 재귀적으로 호출
+
+- Comparable을 구현하지 않은 필드나 표준이 아닌 순서로 비교해야 한다면 비교자(Comparator)를 대신 사용
+
+  ```java
+  public final class CaseInsensitiveString implements Comparable<CaseInsensitiveString> {
+  
+      @Override
+      public int compareTo(CaseInsensitiveString cis) {
+          return String.CASE_INSENSITIVE_ORDER.compare(s, cis.s);
+      }
+  }
+  ```
+
+- 클래스에 핵심 필드가 여러 개라면 어느 것을 먼저 비교하느냐가 중요해짐. 가장 핵심적인 필드부터 비교해나가야 함
+
+  ```java
+  @Override
+  public int compareTo(PhoneNumber pn) {
+      int result = Short.compare(areaCode, pn.areaCode);
+      if (result == 0) {
+          result = Short.compare(prefix, pn.prefix);
+          if (result == 0) {
+              result = Short.compare(lineNum, pn.lineNum);
+          }
+      }
+      return result;
+  }
+  ```
+
+- 자바 8에서는 Comparator 인터페이스가 일련의 비교자 생성 메서드(comparator construction method)와 함께 메서드 연쇄 방식으로 비교자를 생성할 수 있게 됨. 하지만 약 10% 정도의 성능 저하가 있음
+
+  ```java
+  private static final Comparator<PhoneNumber> COMPARATOR =
+          comparingInt((PhoneNumber pn) -> pn.areaCode)
+                  .thenComparingInt(pn -> pn.prefix)
+                  .thenComparingInt(pn -> pn.lineNum);
+  
+  public int compareTo(PhoneNumber pn) {
+      return COMPARATOR.compare(this, pn);
+  }
+  ```
+
+- compare 메서드를 활용한 비교자
+
+  ```java
+  static Comparator<Object> hashCodeOrder = new Comparator<>() {
+      public int compare(Object o1, Object o2) {
+          return Integer.compare(o1.hashCode(), o2.hashCode());
+      }
+  };
+  ```
+
+- 비교자 생성 메서드를 활용한 비교자
+
+  ```java
+  static Comparator<Object> hashCodeOrder
+    = Comparator.comparingInt(o -> o.hashCode());
+  ```
+
+  
 
