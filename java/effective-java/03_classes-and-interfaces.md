@@ -5,6 +5,8 @@
 > [ITEM 16. public 클래스에서는 public 필드가 아닌 접근자 메서드를 사용하라](#ITEM-16.-public-클래스에서는-public-필드가-아닌-접근자-메서드를-사용하라)
 >
 > [ITEM 17. 변경 가능성을 최소화하라](#ITEM-17.-변경-가능성을-최소화하라)
+>
+> [ITEM 18. 상속보다는 컴포지션을 사용하라](#ITEM-18.-상속보다는-컴포지션을-사용하라)
 
 <br>
 
@@ -279,4 +281,111 @@ public final class Complex {
 - 불변으로 만들 수 없는 클래스라도 변경할 수 있는 부분을 최소한으로 줄여야 함
 - 생성자는 (불변식 설정이 모두 완료된) 초기화가 완벽히 끝난 상태의 객체를 생성해야 함
   - 확실한 이유가 없다면 생성자와 정적 팩터리 외에 어떤 초기화 메서드도 public 으로 제공해서는 안됨
+
+<br>
+
+## ITEM 18. 상속보다는 컴포지션을 사용하라
+
+> 상속은 코드를 재사용하는 강력한 수단이지만 항상 최선은 아니다. 잘못 사용하게 되면 오류를 내기 쉬운 소프트웨어를 만들게 된다. 상위 클래스와 하위 클래스를 모두 같은 프로그래머가 통제하는 패키지 안에서라면 상속도 안전한 방법이다. 확장할 목적으로 설계되었고 문서화도 잘 된 클래스(아이템19)도 마찬가지로 안전하다. 하지만 일반적인 구체 클래스를 패키지 경계를 넘어, 즉 다른 패키지의 구체 클래스를 상속하는 일은 위험하다.
+
+##### 상속의 단점
+
+- 메서드 호출과 달리 상속은 캡슐화를 깨뜨린다
+
+  - 상위 클래스가 어떻게 구현되느냐에 따라 하위 클래스의 동작에 이상이 생길 수 있음
+
+  - 즉, 상위 클래스는 릴리즈마다 내부 구현이 달라질 수 있으며, 이로 인해 하위 클래스는 오작동할 수 있다는 뜻
+
+  - 예시
+
+    ```java
+    public class InstrumentedHashSet<E> extends HashSet<E> {
+    
+        private int addCount = 0;
+    
+        public InstrumentedHashSet() {}
+    
+        public InstrumentedHashSet(int initCap, float loadFactor) {
+            super(initCap, loadFactor);
+        }
+    
+        @Override
+        public boolean add(E e) {
+            addCount++;
+            return super.add(e);
+        }
+    
+        @Override
+        public boolean addAll(Collection<? extends E> c) {
+            addCount += c.size();
+            return super.addAll(c);  // add() 메서드를 재호출하며 중복 카운팅
+        }
+    
+        public int getAddCount() {
+            return this.addCount;
+        }
+    
+        public static void main(String[] args) {
+            InstrumentedHashSet<String> s = new InstrumentedHashSet<>();
+            s.addAll(List.of("a", "b", "c"));
+    
+            System.out.println("s.getAddCount() = " + s.getAddCount());
+        }
+    }
+    
+    ```
+
+    - HashSet을 사용하는 프로그램을 확장하여 새로운 클래스를 만들었을 때, 잘못 동작할 수 있음
+    - addAll() 메서드가 add() 메서드를 사용하게 되므로 중복된 계산을 하게 되어 3이 아닌 6을 반환
+
+- 다음 릴리즈에서 상위 클래스에 새로운 메서드를 추가하면 의도하지 않은 동작을 할 수도 있음
+
+  - 컬렉션 프레임워크 이전부터 존재하던 Hashtable, Vector를 컬렉션 프레임워크에 포함시켜 보안 허점들을 수정해야 하는 사태가 벌어지기도 함
+
+- 하위 클래스에 새로운 메서드를 추가하는 것도 해결책이 될 수 없음
+
+  - 상위 클래스가 다음 릴리즈에서 새 메서드를 추가했는데, 시그니쳐가 같다면 override 하는 것과 똑같은 부수 효과가 발생하고, 시그니쳐가 같고 반환 타입이 다르면 하위 클래스는 컴파일조차 되지 않음
+  - 중복되는 상위 클래스의 규약을 만족하지 못할 가능성이 높음
+
+- 컴포지션을 써야 할 상황에서 상속을 사용하는 건 내부 구현을 불필요하게 노출하는 꼴
+
+  - API가 내부 구현에 묶이고 그 클래스의 성능도 영원히 제한됨
+  - 더 심각한 문제는 클라이언트가 노출된 내부에 직접 접근할 수 있음
+
+- 상속을 사용하기로 결정하기 전에 다음과 같은 질문을 해야 함
+
+  - 확장하려는 클래스의 API에 아무런 결함이 없는가?
+
+  - 결함이 있다면, 이 결함이 여러분의 클래스의 API까지 전파해도 괜찮은가?
+
+    \>> 컴포지션으로는 이런 결함을 숨기는 새로운 API를 설계할 수 있지만, 상속은 상위 클래스의 API를 '그 결함까지도' 그대로 승계한다
+
+<br>
+
+##### 컴포지션(composition)
+
+> 기존 클래스를 확장하지 않고 새로운 클래스의 private 필드로 기존 클래스 인스턴스를 참조하게 함
+>
+> `private SuperClass superClass = new SuperClass();`
+>
+> - 이러한 방식을 forwarding 이라 하며 새 클레스의 메서드들을 전달 메서드(forwarding method)라 함
+> - 새로운 클래스는 기존 클래스의 내부 구현 방식의 영향에서 벗어날 수 있음
+> - 기존 클래스에 새로운 메서드가 추가되더라도 영향받지 않음
+
+```java
+public class ForwardingSet<E> implements Set<E> {
+
+    // Override all methods of the interface Set
+
+}
+```
+
+- 다른 Set 인스턴스를 감싸고(wrap) 있다는 뜻에서 래퍼 클래스라고 하며, 다른 Set에 계측 기능을 덧씌운다는 뜻에서 데코레이터 패턴이라고도 함
+- 컴포지션과 전달의 조합은 넓은 의미로 위임(delegation)이라고 부름. 단, 엄밀하게 래퍼 객체가 내부 객체에 자기 자신의 참조를 넘기는 경우만 위임에 해당함
+- 래퍼 클래스는 단점이 거의 없지만 callback framework 와는 어울리지 않다는 점만 주의하면 됨
+  - 자기 자신의 참조를 다른 객체에 넘겨서 다음 호출(콜백) 때 사용하도록 함
+  - 내부 객체는 자신을 감싸고 있는 래퍼의 존재를 모르니 대신 자신(this)의 참조를 넘기고, 콜백 때는 래퍼가 아닌 내부 객체를 호출하게 됨
+  - 이를 self 문제라고 함
+
+
 
