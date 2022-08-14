@@ -3,6 +3,8 @@
 > [ITEM 15. 클래스와 멤버의 접근 권한을 최소화하라](#ITEM-15.-클래스와-멤버의-접근-권한을-최소화하라)
 >
 > [ITEM 16. public 클래스에서는 public 필드가 아닌 접근자 메서드를 사용하라](#ITEM-16.-public-클래스에서는-public-필드가-아닌-접근자-메서드를-사용하라)
+>
+> [ITEM 17. 변경 가능성을 최소화하라](#ITEM-17.-변경-가능성을-최소화하라)
 
 <br>
 
@@ -99,3 +101,182 @@ public class Point {
 
 - public 클래스에서 접근자를 제공해 클래스 내부 표현 방식을 언제든 바꿀 수 있는 유연성을 얻음
 - Package-private 클래스 혹은 private 중첩 클래스라면 데이터 필드를 노출한다 해도 문제는 없음
+
+<br>
+
+## ITEM 17. 변경 가능성을 최소화하라
+
+##### 불변클래스
+
+- 인스턴스의 내부 값을 수정할 수 없는 클래스
+- 불변 클래스는 가변 클래스보다 설계하고 구현하고 사용하기 쉬우며, 오류가 생길 여지도 적고 훨씬 안전
+- 불변 클래스를 만드는 규칙
+  - 객체의 상태를 변경하는 메서드(변경자)를 제공하지 않음
+  - 클래스를 확장할 수 없도록 함
+    - 하위 클래스에서 부주의하게 혹은 나쁜 의도로 객체의 상태를 변하게 만드는 사태를 막음
+  - 모든 필드를 final로 선언
+    - 시스템이 강제하는 수단을 이용해 설계자의 의도를 명확히 드러내는 방법
+    - 새로 생성된 인스턴스를 동기화 없이 다른 스레드로 건네도 문제없이 동작하게끔 보장하는 데 필요
+  - 모든 필드를 private으로 선언
+    - 필드가 참조하는 가변 객체를 클라이언트에서 직접 접근해 수정하는 일을 막음
+    - 기본 타입 필드나 불변 객체를 참조하는 필드를 public final로만 선언해도 불변 객체가 되지만, 이렇게 하면 다음 릴리즈에서 내부 표현을 바꾸지 못하므로 권장하지는 않음
+  - 자신 외에는 내부의 가변 컴포넌트에 접근할 수 없도록 함
+    - 클래스에 가변 객체를 참조하는 필드가 하나라도 있다면 클라이언트에서 그 객체의 참조를 얻을 수 없도록 해야 함
+    - 접근자 메서드가 그 필드를 그대로 반환해서도 안됨
+    - 생성자, 접근자, readObject 메서드 모두에서 방어적 복사를 수행
+
+```java
+public final class Complex {
+
+    private final double re;
+    private final double im;
+
+    public Complex(double re, double im) {
+        this.re = re;
+        this.im = im;
+    }
+
+    public double realPart() {
+        return this.re;
+    }
+    
+    public double imaginaryPart() {
+        return this.im;
+    }
+    
+    public Complex plus(Complex c) {
+        return new Complex(re + c.re, im + c.im);
+    }
+    
+    // ...
+}
+```
+
+- plus와 같은 사칙연산 메서드는 인스턴스 자신은 수정하지 않고 새로운 Complex 인스턴스를 만들어 반환함. 피연산자에 함수를 적용해 그 결과를 반환하지만 피연산자 자체는 그대로인 프로그래밍 패턴을 함수형 프로그래밍이라 함
+- method 이름으로 add 같은 동사 대신 plus 같은 전치사를 사용한 점에 주목
+  - add는 값을 변경하여 더한다는 의미가 크고, plus는 객체의 값을 변경하지 않는다는 사실을 강조하려는 의도
+
+<br>
+
+##### 장점
+
+- 불변 객체는 근본적으로 스레드 안전하여 따로 동기화할 필요가 없음
+
+- 불변 클래스라면 한 번 만든 인스턴스를 최대한 재활용하기를 권함
+
+  - 가장 쉬운 재활용 방법은 자주 쓰이는 값들을 상수(public static final)로 제공하는 것
+
+    ```java
+    public static final Complex ZERO = new Complex(0, 0);
+    public static final Complex ONE = new Complex(1, 0);
+    public static final Complex I = new Complex(1, 0);
+    ```
+
+- 불변 클래스는 자주 사용되는 인스턴스를 캐싱하여 같은 인스턴스를 중복 생성하지 않게 해주는 정적 팩터리를 제공할 수 있음
+
+  - 여러 클라이언트가 인스턴스를 공유하여 메모리 사용량과 가비지 컬렉션 비용이 줄어듬
+  - 새로운 클래스를 설계할 때 public 생성자 대신 정적 팩터리를 만들어두면, 클라이언트를 수정하지 ㅇ낳고도 필요에 따라 캐시 기능을 나중에 덧붙일 수 있음
+
+- 불변 객체를 자유롭게 공유할 수 있다는 점은 방어적 복사도 필요 없다는 결론으로 이어짐
+
+  - 아무리 복사해봐야 원본과 똑같으니 복사자체가 의미가 없으므로 clone 메서드나 복사 생성자를 제공하지 않는게 좋음
+
+- **불변 객체끼리는 내부 데이터를 공유할 수 있음**
+
+  - BigInteger 클래스는 내부에서 값의 부호(sign)와 크기(magnitude)를 따로 표현함
+
+    ```java
+    public class BigInteger {
+        final int signum;  // -1, 0, 1로 부호를 나타냄
+        final int[] mag;  // 생성 단계에서 초기화
+      
+        private BigInteger(int[] val) {
+            if (val.length == 0)
+                throw new NumberFormatException("Zero length BigInteger");
+    
+            if (val[0] < 0) {
+                mag = makePositive(val);
+                signum = -1;
+            } else {
+                mag = trustedStripLeadingZeroInts(val);
+                signum = (mag.length == 0 ? 0 : 1);
+            }
+            if (mag.length >= MAX_MAG_LENGTH) {
+                checkRange();
+            }
+        }
+    }
+    ```
+
+    - 배열은 비록 가변이지만 복사하지 않고 원본 인스턴스와 공유해도 됨
+
+- **객체를 만들 때 다른 불변 객체들을 구성요소로 사용하면 이점이 많음**
+
+  - 값이 바뀌지 않는 구성요소로 이뤄진 객체라면 그 구조가 아무리 복잡해도 불변식 유지하기가 수월해짐
+  - 불변 객체는 map의 키와 set의 원소로 쓰기에 안성맞춤(map or set 안에 담긴 값이 바뀌면 불변식이 허물어지는데, 불변 객체를 사용하면 그런 걱정을 하지 않아도 됨)
+
+- **불변 객체는 그 자체로 실패 원자성을 제공**
+
+  - 실패 원자성(failure atomicity)이란 '메서드가 예외가 발생한 후에도 그 객체는 여전히 (메서드 호출 전과 똑같은) 유효한 상태여야 한다'는 성질. 불변 객체의 메서드는 내부 상태를 바꾸지 않으니 이 성질을 만족
+
+<br>
+
+##### 단점
+
+- 값이 다르면 반드시 독립된 객체로 만들어야 함
+  - 값의 가짓수가 많다면 생성 비용이 매우 커짐
+- 객체 생성 단계가 많고 중간 단계에서 만들어진 객체가 버려진다면 성능 문제가 더 커짐
+  - 대처 방법: 흔히 쓰일 다단계 연산(multistep operation)을 예측하여 기본 기능으로 제공
+    - BigInteger는 모듈러 지수 같은 다단계 연산 속도를 높여주는 가변 동반 클래스(companion class)를 package-private으로 두고 있음
+    - 연산들을 정확히 예측할 수 있다면 package-private 가변 동반 클래스만으로 충분하지만, 그렇지 않다면 public으로 제공하는 것이 최선
+    - String의 StringBuilder, StringBuffer 등이 가변 동반 클래스
+
+<br>
+
+##### 불변 클래스를 만드는 설계 방법
+
+- 자신을 상속하지 못하게 하는 방법
+
+  - final class 선언
+
+  - 모든 생성자 private or package-private 만들고 public static factory method 제공 방법
+
+    ```java
+    public class Complex {
+        
+        //...
+      
+        private Complex(double re, double im) {
+            this.re = re;
+            this.im = im;
+        }
+    
+        public static Complex valueOf(double re, double im) {
+            return new Complex(re, im);
+        }
+    }
+    
+    ```
+
+    - private 생성자를 통해 다른 패키지에서 이 클래스 확장이 불가능함
+    - 정적 팩터리 방식은 다수의 구현 클래스를 활용한 유연성을 제공하고, 이에 더해 다음 릴리즈에서 객체 캐싱 기능을 추가해 성능을 끌어올릴 수도 있음
+
+- 불변 클래스 성능을 위한 예외
+
+  - 모든 필드가 final 이고 어떤 메서드도 그 객체를 수정할 수 없다는 것 보다, '어떤 메서드도 객체의 상태 중 외부에 비치는 값을 변경할 수 없다'고 예외를 둘 수도 있음
+  - 어떤 불변 클래스는 계산 비용이 큰 값을 나중에 (처음 쓰일 때) 계산하여 final이 아닌 필드에 캐시해두기도 함. 똑같은 값을 요청 시 캐시 값을 반환해 비용 절감. 이는 객체가 항상 같은 값을 반환하기 때문에 사용할 수 있는 것
+
+- 직렬화 시 주의점
+
+  - Serializable을 구현한 불변 클래스의 내부에 가변 객체를 참조하는 필드가 있다면 readObject나 readResolve 메서드를 반드시 제공하거나, ObjectOutputStream.writeUnshared와 ObjectInputStream.readUnshared 메서드를 사용해야 함.
+  - 그렇지 않으면 공격자가 이 클래스로부터 가변 인스턴스를 만들어낼 수 있음
+
+<br>
+
+##### 정리
+
+- 클래스는 꼭 필요한 경우가 아니라면 불변이어야 함
+- 불변으로 만들 수 없는 클래스라도 변경할 수 있는 부분을 최소한으로 줄여야 함
+- 생성자는 (불변식 설정이 모두 완료된) 초기화가 완벽히 끝난 상태의 객체를 생성해야 함
+  - 확실한 이유가 없다면 생성자와 정적 팩터리 외에 어떤 초기화 메서드도 public 으로 제공해서는 안됨
+
