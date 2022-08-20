@@ -9,6 +9,8 @@
 > [ITEM 18. 상속보다는 컴포지션을 사용하라](#ITEM-18.-상속보다는-컴포지션을-사용하라)
 >
 > [ITEM 19. 상속을 고려해 설계하고 문서화하라. 그러지 않았다면 상속을 금지하라](#ITEM-19.-상속을-고려해-설계하고-문서화하라.-그러지-않았다면-상속을-금지하라)
+>
+> [ITEM 20. 추상 클래스보다는 인터페이스를 우선하라](#ITEM-20.-추상-클래스보다는-인터페이스를-우선하라)
 
 <br>
 
@@ -482,5 +484,261 @@ public class ForwardingSet<E> implements Set<E> {
     - 이런 클래스라도 상속을 꼭 허용해야 한다면 클래스 내부에서는 재정의 가능 메서드를 사용하지 않게 만들고 이 사실을 문서로 남기면 좋음(즉, 재정의 가능 메서드를 호출하는 자기 사용 코드를 완벽히 제거하라는 뜻. 메서드 재정의해도 다른 메서드의 동작에 아무런 영향을 주지 않으므로)
     - 클래스 동작 유지하면서 재정의 가능 메서드를 사용하는 코드를 제거하는 기계적인 방법으로는, 각 재정의 가능 메서드는 private '도우미 메서드'로 옮기고, 재정의 가능 메서드를 호출하는 다른 코드들이 모두 이 도우미 메서드를 직접 호출하도록 수정하라
 
+<br>
 
+## ITEM 20. 추상 클래스보다는 인터페이스를 우선하라
+
+##### 인터페이스와 추상클래스
+
+- 공통점
+  - 자바가 제공하는 다중 구현 메커니즘
+  - 자바 8부터 인터페이스도 default method를 제공할 수 있게 되어, 이 두 메커니즘 모두 인스턴스 메서드를 구현 형태로 제공할 수 있음
+- 차이점
+  - 추상클래스가 정의한 타입을 구현하는 클래스는 반드시 추상 클래스의 하위 클래스가 되어야 함(자바는 단일 상속만 지원하므로 추상클래스 방식은 새로운 타입을 정의하는 데 커다란 제약을 안음)
+  - 인터페이스는 선언 메서드를 모두 overridng 하고 그 일반 규약을 잘 지킨 클래스라면 다른 어떤 클래스를 상속했든 같은 타입으로 취급
+
+<br>
+
+##### 인터페이스의 장점
+
+- 기존 클래스에도 손쉽게 새로운 인터페이스 구현 가능
+
+  - 추상클래스는 기존 클래스 위에 새로운 추상 클래스 끼워넣기 어려운 것이 일반적
+  - 두 클래스가 같은 추상클래스를 extends 하려면 그 추상클래스는 계층구조상 두 클래스의 공통 조상이어야 함(즉, 새로 추가된 추상클래스의 모든 자손이 이를 상속하게 되는 것이 적절치 않음)
+
+- mixin 정의에 안성맞춤
+
+  - mixin이란 클래스가 구현할 수 있는 타입으로, 믹스인을 구현한 클래스에 원래의 '주된 타입' 외에도 특정 선택적 행위를 제공한다고 선언하는 효과를 줌(e.g. Comparable은 자신을 구현한 클래스의 인스턴스들끼리는 순서를 정할 수 있다고 선언하는 것)
+  - 대상 타입의 주된 기능에 선택적 기능을 '혼합(mixed in)'한다고 해서 믹스인이라 부름
+  - 추상클래스로는 믹스인을 정의할 수 없음. 기존 클래스에 덧씌울 수 없기 때문에(단일 상속)
+
+- 계층구조가 없는 타입 프레임워크를 만들 수 있음
+
+  - 예시
+
+    ```java
+    public interface Singer {
+        AudioClip sing(Song s);
+    }
+    
+    public interface Songwriter {
+        Song compose(int chartPosition);
+    }
+    
+    public interface SingerSongwriter extends Singer, Songwriter {
+        AudioClip strum();
+        void actSensitive();
+    }
+    ```
+
+    - 작곡도 하고 노래도 하는 가수가 있다고 한다면, 이 코드처럼 타입을 인터페이스로 정의할 때 Singer와 Songwriter 모두를 구현해도 전혀 문제가 없음
+    - 심지어 Singer, Songwriter 모두 확장하고 새로운 메서드도 추가하면 제3의 인터페이스를 정의할 수 있음
+
+  - 같은 구조를 클래스로 만들려면 가능한 조합을 각각의 클래스로 정의한 고도비만 계층구조가 만들어질 것(속성이 n개라면 지원해야 할 조합의 수는 2^n개). 이를 조합 폭발(combinational explosion)이라 부름
+
+- 래퍼 클래스 관용구(아이템 18)와 함께 사용하면 기능을 향상시키는 안전하고 강력한 수단이 됨
+
+  - 래퍼 클래스를 만들기 위해 상속을 사용하는 것보다는 인터페이스를 구현하도록 하는 것이 좋음
+  - 타입을 추상클래스로 정의해두면 그 타입에 기능을 추가하는 방법은 상속 뿐
+  - 상속해서 만든 클래스는 래퍼 클래스보다 활용도가 떨어지고 깨지기는 더 쉬움
+
+- default method
+
+  - 인터페이스의 메서드 중 구현 방법이 명백한 것이 있으면, 그 구현을 디폴트 메서드로 제공해 프로그래머들의 일감을 덜어줄 수 있음
+  - 디폴트 메서드를 제공할 때는 상속하려는 사람을 위한 설명을 @implSpec 자바독 태그를 붙여 문서화해야 함
+  - 디폴트 메서드의 제약
+    - equals, hashCode 같은 Object 메서드를 디폴트 메서드로 제공해서는 안됨
+    - 인스턴스 필드를 가질 수 없음
+    - public이 아닌 정적 멤버도 가질 수 없음(private static method 제외)
+    - 직접 만들지 않은 인터페이스에는 디폴트 메서드 추가 불가
+
+  - 예시
+
+    ```java
+    // java.util.Collection interface
+    
+    default boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        boolean removed = false;
+        final Iterator<E> each = iterator();
+        while (each.hasNext()) {
+            if (filter.test(each.next())) {
+                each.remove();
+                removed = true;
+            }
+        }
+        return removed;
+    }
+    ```
+
+    - @implSpec
+      - The default implementation traverses all elements of the collection using its {@link #iterator}.  Each matching element is removed using {@link Iterator#remove()}.  If the collection's iterator does not support removal then an {@code UnsupportedOperationException} will be thrown on the first matching element.
+
+- 인터페이스와 추상 골격 구현(skeletal implementation) 동시 제공
+
+  - 인터페이스와 추상 클래스의 장점을 모두 취할 수 있음
+
+    - 인터페이스로는 타입을 정의하고, 필요하면 디폴트 메서드 몇 개도 함께 제공함
+
+    - 골격 구현 클래스는 나머지 메서드들까지 구현
+
+      \>> 이를 통해 골격 구현을 확장하는 것만으로 이 인터페이스를 구현하는 데 필요한 일이 대부분 완료됨(템플릿 메서드 패턴)
+
+  - 관례상 인터페이스 이름이 Interface 라면 골격 구현 클래스의 이름은 AbstractInterface로 지음
+
+    - AbstractCollection, AbstractSet, AbstractList, AbstractMap 등
+
+      (어쩌면 SkeletonMap, SkeletonSet 등이 더 적절했을지도)
+
+  - 골격 구현 클래스를 잘 설계하면 그 인터페이스로 나름의 구현을 하려는 프로그래머의 일을 상당히 덜어줌
+
+  - 골격 구현 클래스의 우회적 이용
+
+    - 인터페이스를 구현한 클래스에서 해당 골격 구현을 확장한 private 내부 클래스를 정의하고, 각 메서드 호출을 내부 클래스의 인스턴스에 전달
+    - wrapper class와 비슷한 방식으로 `simulated multiple inheritance`라 함
+
+  - 예시1
+
+    ```java
+    static List<Integer> intArrayAsList(int[] a) {
+        Objects.requireNonNull(a);
+        
+        return new AbstractList<>() {
+    
+            @Override 
+            public Integer get(int i) {
+                return a[i];
+            }
+            
+            @Override
+            public Integer set(int i, Integer val) {
+                int oldVal = a[i];
+                a[i] = val;
+                return oldVal;
+            }
+            
+            @Override
+            public int size() {
+                return a.length;
+            }
+        };
+    }
+    ```
+
+    - 완벽히 동작하는 List 구현체를 반환하는 정적 팩터리 메서드
+
+      (int 배열을 받아 Integer 인스턴스의 리스트 형태로 보여주는 어댑터이기도 함)
+
+    - AbstractList 추상클래스에 선언된 get() public abstact method 구현
+
+    - AbstractList가 상속하는 AbstractCollection 클래스의 size() public abstract method 구현
+
+    - 골격 구현 클래스는 추상클래스처럼 구현을 도와주는 동시에, 추상클래스로 타입을 정의할 때 따라오는 심각한 제약에서는 자유로움
+
+  - 예시2
+
+    ```java
+    public abstract class AbstractMapEntry<K, V> implements Map.Entry<K, V> {
+    
+        // 변경 가능한 엔트리는 이 메서드를 반드시 재정의해야 한다.
+        @Override
+        public V setValue(V value) {
+            throw new UnsupportedOperationException();
+        }
+    
+        // Map.Entry.equals의 일반 규약을 구현한다.
+    
+        @Override
+        public boolean equals(Object o) {
+            if (o == this)
+                return true;
+            if (!(o instanceof Map.Entry))
+                return false;
+            Map.Entry<?,?> e = (Map.Entry) o;
+            return Objects.equals(e.getKey(), getKey())
+                    && Objects.equals(e.getValue(), getValue());
+        }
+    
+        // Map.Entry.hashCode의 일반 규약을 구현한다.
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(getKey()) ^ Objects.hashCode(getValue());
+        }
+    
+        @Override
+        public String toString() {
+            return getKey() + "=" + getValue();
+        }
+    }
+    ```
+
+    - Map.Entry 인터페이스나 그 하위 인터페이스로는 이 골격 구현을 제공할 수 없음. 디폴트 메서드는 equals, hashCode, toString 같은 Object 메서드를 재저으이할 수 없기 때문
+    - 골격 구현은 기본적으로 상속해서 사용하는 것을 가정하므로 설계 및 문서화 지침을 모두 따라야 함
+
+  - 단순 구현(simple implementation)은 골격 구현의 작은 변종
+
+    - 단순 구현도 골격 구현과 같이 상속을 위해 인터페이스를 구현한 것이지만, 추상클래스가 아니란 점이 다름
+
+    - 동작하는 가장 단순한 구현으로, 이러한 단순 구현은 그대로 써도 되고 필요에 맞게 확장해도 됨
+
+    - 예시
+
+      ```java
+      public abstract class AbstractMap<K,V> implements Map<K,V> {
+      
+          public static class SimpleImmutableEntry<K,V>
+                  implements Map.Entry<K,V>, java.io.Serializable
+          {
+              private static final long serialVersionUID = 7138329143949025153L;
+      
+              private final K key;
+              private final V value;
+      
+              public SimpleImmutableEntry(K key, V value) {
+                  this.key   = key;
+                  this.value = value;
+              }
+      
+              public SimpleImmutableEntry(Map.Entry<? extends K, ? extends V> entry) {
+                  this.key   = entry.getKey();
+                  this.value = entry.getValue();
+              }
+      
+              public K getKey() {
+                  return key;
+              }
+      
+              public V getValue() {
+                  return value;
+              }
+      
+              public V setValue(V value) {
+                  throw new UnsupportedOperationException();
+              }
+              
+              public boolean equals(Object o) {
+                  if (!(o instanceof Map.Entry))
+                      return false;
+                  Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+                  return eq(key, e.getKey()) && eq(value, e.getValue());
+              }
+      
+              public int hashCode() {
+                  return (key   == null ? 0 :   key.hashCode()) ^
+                          (value == null ? 0 : value.hashCode());
+              }
+      
+              public String toString() {
+                  return key + "=" + value;
+              }
+          }
+      }
+      ```
+
+      - AbstractMap 추상클래스의 static class
+      - getKey(), getValue(), setValue(), equals(), hashCode(), toString() 구현
+
+<br>
+
+[위로](#클래스와-인터페이스)
 
