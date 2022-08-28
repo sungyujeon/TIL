@@ -26,9 +26,9 @@
 >
 > [결론](#결론)
 
+<br>
 
-
-
+<br>
 
 ##### 어떤 함수가 코드 이해를 어렵게 하는가?
 
@@ -37,15 +37,15 @@
 - 중첩된 if 문이 많다
 - 이상한 네이밍을 하거나 의미가 모호한 함수를 호출한다.
 
-
+<br>
 
 ##### 좋은 함수란?
 
-> 의도를 분명히 표현하는, 처음 읽는 사람이 직권적으로 파악할 수 있는 함수는 어떻게 작성하는가?
+> 의도를 분명히 표현하는, 처음 읽는 사람이 직관적으로 파악할 수 있는 함수는 어떻게 작성하는가?
 
 - 작은 함수, 단일 책임, 계층적 추상화, 내려가기
 
-
+<br>
 
 ##### 작은 함수
 
@@ -60,7 +60,7 @@
   ```
 
   - 대개 if/else/while문 등에서 함수를 호출
-  - 이를 통해 바깥음 감싸는 함수(enclosing function)가 작아지고, 블록 안에서 호출하는 함수 이름을 적절히 지으면 코드 이해도 쉬워짐
+  - 이를 통해 바깥을 감싸는 함수(enclosing function)가 작아지고, 블록 안에서 호출하는 함수 이름을 적절히 지으면 코드 이해도 쉬워짐
 
 - 함수에서 들여쓰기는 1-2단을 넘어가면 안된다
 
@@ -96,7 +96,7 @@
   }
   ```
 
-
+<br>
 
 ##### 한 가지만 해라!
 
@@ -116,7 +116,8 @@
 
   - 해당 if문을 includeSetupsAndTeardownsIfTestPate로 변경하는 것은 같은 내용을 다르게 표현할 뿐 추상화 수준을 바꾸지는 않는 것
 
-    
+
+<br>
 
 ##### 추상화 수준은 하나로!
 
@@ -167,7 +168,7 @@
   }
   ```
 
-
+<br>
 
 ##### 내려가기 규칙
 
@@ -184,7 +185,7 @@
   	- 부모 계층을 검색하려면 ...
   ```
 
-
+<br>
 
 ##### Switch
 
@@ -192,8 +193,7 @@
 
 ```java
 // bad
-// 새 직원 유형을 추가하면 함수가 길어질 것이고,
-// ?????
+// 새 직원 유형을 추가하면 함수가 길어질 것
 public Money calculatePay(Employee e) throws InvalidEmployeeType {
   switch (e.type) {
     case COMMISSIONED:
@@ -238,7 +238,7 @@ public class EmployeeFactoryImpl implements EmployeeFactory {
 - 팩토리 구현 클래스에서 switch로 Employee 파생 클래스의 인스턴스를 생성
 - employee 인스턴스의 행위는 계속해서 추가될 수 있으므로(isPayday, calculatePay 등), Employee 인터페이스를 거쳐서 호출함
 
-
+<br>
 
 ##### 서술적인 이름을 사용하라!
 
@@ -246,7 +246,7 @@ public class EmployeeFactoryImpl implements EmployeeFactory {
 - 길고 서술적인 이름이 짧고 어려운 이름보다, 서술적인 주석보다 좋음
 - 서술적인 이름을 사용하면 개발자도 설계가 뚜렷해지므로 코드를 개선하기 쉬워짐
 
-
+<br>
 
 ##### 함수 인수를 줄여라
 
@@ -300,16 +300,27 @@ public class EmployeeFactoryImpl implements EmployeeFactory {
 
     ```java
     // bad
-    outputStream.writeField(name)
+    writeField(outputStream, name);
       
-    // good
+    // good-1
     // FieldWriter 클래스를 새로 만들어 인스턴스 변수를 만들고 write 메서드 구현
+    outputStream.writeField(name)
+    public class OutputStream {
+      
+      public void writeField(name) {
+        //...
+      }
+    }
+    
+    // good-2
+    FieldWriter.setName("name");
+    FieldWriter.write();
     public class FieldWriter() {
       String name;
       OutputStream outputstream;
       
       public void write() {
-    		// 생략   
+    		//...   
       }
       public void setName(String name) {
         this.name = name;
@@ -360,7 +371,7 @@ public class EmployeeFactoryImpl implements EmployeeFactory {
     assertExpectedEqualsActual(expected, actual);  // better
     ```
 
-
+<br>
 
 ##### 부수 효과를 일으키지 마라!
 
@@ -406,7 +417,7 @@ public class UserValidator {
   - 일반적으로 출력 인수는 피해야 함
   - 함수에서 상태를 변경해야 한다면 함수가 속한 객체 상태를 변경하는 방식을 택함
 
-
+<br>
 
 ##### 명령과 조회를 분리하라!
 
@@ -425,7 +436,7 @@ if (attributeExists("username")) {
 
 - 위 코드처럼 조회 함수와 attribute를 설정하는 명령 함수를 나누는 것이 중요
 
-  
+<br>
 
 ##### 오류 코드보다 예외를 사용하라!
 
@@ -517,21 +528,28 @@ if (attributeExists("username")) {
     OUT_OF_RESOURCES,
     WAITING_FOR_EVENT;
   }
+  
+  public static Error isDivided(int number) throws ArithmeticException {
+      if (number == 0) {
+          throw new ArithmeticException(" / by zero");
+          //return Error.ARITHMETIC_INVALID;
+      }
+      return Error.OK;
+  }
   ```
 
   - 오류 코드를 반환한다는 이야기는, 클래스든 열거형 변수든, 어디선가 오류 코드를 정의한다는 뜻!
 
   - 위 클래스는 의존성 자석(magnet)
-
+  
   - 다른 클래스에서 Error enum을 import해 사용해야 하므로(즉, Error enum이 변한다면 Error enum을 사용하는 클래스 전부를 컴파일하고 다시 배치해야 함), Error 클래스 변경이 어려워짐
-
+  
   - 이 때, 프로그래머들은 Error 클래스 변경이 어려우므로, 새로운 오류 코드를 정의하고 싶지 않아 기존 오류 코드를 재사용함
+  
+  - 즉, 오류 코드 대신에 예외를 사용하면 새 예외는 Exception 클래스에서 파생되므로 재컴파일/재배치 없이도 새 예외 클래스를 추가할 수 있음(OCP)
+  
 
-  - 즉! 오류 코드 대신에 예외를 사용하면 새 예외는 Exception 클래스에서 파생되므로 재컴파일/재배치 없이도 새 예외 클래스를 추가할 수 있음(OCP)
-
-    ~~다시 봐야할 듯~~
-
-
+<br>
 
 ##### 결론
 
@@ -541,6 +559,114 @@ if (attributeExists("username")) {
 
 - 진짜 목표는 시스템이란 이야기를 풀어나가는 데 있다!
 - 함수가 분명하고 정확한 언어로 깔끔하게 맞아떨어져야 이야기를 풀어가기가 쉬워진다!
+
+
+
+## Code Example
+
+##### bad example
+
+```java
+public static String testableHtml(PageData pageData, boolean includeSuiteSetup) throws Exception {
+
+    WikiPage wikiPage = pageData.getWikiPage();
+    StringBuffer buffer = new StringBuffer();
+
+    if (pageData.hasAttribute("Test")) {
+        if (includeSuiteSetup) {
+            WikiPage suiteSetup = PageCrawlerImpl.getInheritedPage(SuiteResponder.SUITE_SETUP_NAME, wikiPage);
+
+            if (suiteSetup != null) {
+                WikiPagePath pagePath = suiteSetup.getPageCrawler().getFullPath(suiteSetup);
+                String pagePathName = PathParser.render(pagePath);
+                buffer.append("!include -setup .")
+                        .append(pagePathName)
+                        .append("\n");
+            }
+        }
+    }
+
+    WikiPage setup = PageCrawlerImpl.getInheritedPage("Setup", wikiPage);
+    if (setup != null) {
+        WikiPagePath setupPath = wikiPage.getPageCrawler().getFullPath(setup);
+        String setupPathName = PathParser.render(setupPath);
+        buffer.append("!include -setup .")
+                .append(setupPathName)
+                .append("\n");
+    }
+
+    buffer.append(pageData.getContent());
+
+    if (pageData.hasAttribute("Test")) {
+        WikiPage teardown = PageCrawlerImpl.getInheritedPage("TearDown", wikiPage);
+
+        if (teardown != null) {
+            WikiPagePath tearDownPath = wikiPage.getPageCrawler().getFullPath(teardown);
+            String tearDownPathName = PathParser.render(tearDownPath);
+            buffer.append("\n")
+                    .append("!include -teardown .")
+                    .append(tearDownPathName)
+                    .append("\n");
+        }
+
+        if (includeSuiteSetup) {
+            WikiPage suiteTeardown = PageCrawlerImpl.getInheritedPage(SuiteResponder.SUITE_TEARDOWN_NAME, wikiPage);
+
+            if (suiteTeardown != null) {
+                WikiPagePath pagePath = suiteTeardown.getPageCrawler().getFullPath(suiteTeardown);
+                String pagePathName = PathParser.render(pagePath);
+                buffer.append("!include -teardown .")
+                        .append(pagePathName)
+                        .append("\n");
+            }
+        }
+    }
+    pageData.setContent(buffer.toString());
+    return pageData.getHtml();
+}
+```
+
+<br>
+
+##### good example
+
+```java
+// refactor-1
+public static String renderPageWithSetupAndTeardowns(PageData pageData, boolean isSuite) throws Exception {
+
+    boolean isTestPage = pageData.hasAttribute("Test");
+
+    if (isTestPage) {
+        WikiPage testPage = pageData.getWikiPage();
+        StringBuffer newPageContent = new StringBuffer();
+
+        includeSetupPages(testPage, newPageContent, isSuite);
+        newPageContent.append(pageData.getContent());
+        includeTeardownPages(testPage, newPageContent, isSuite);
+        pageData.setContent(newPageContent.toString());
+    }
+    return pageData.getHtml();
+}
+
+// refactor-2
+// 지정된 함수 이름 아래에서 추상화 수준이 하나
+public static String renderPageWithSetupAndTeardowns(PageData pageData, boolean isSuite) throws Exception {
+    if (isTestPage(pageData)) {  // 페이지가 테스트 페이지인지 판단
+        includeSetupAndTeardownPages(pageData, isSuite);  // 설정 페이지와 해제 페이지를 넣음
+    }
+    return pageData.getHtml();  // 페이지를 HTML로 렌더링
+}
+```
+
+<br>
+
+##### better example
+
+```java
+
+```
+
+
 
 
 
