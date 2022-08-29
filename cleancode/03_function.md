@@ -114,7 +114,7 @@
 
   - `includeSetupAndTeardownPages` -> `includeSetupPages / includeTeardownPages` -> `includeSetupPage / includeTeardownPage` -> `include` -> `build` 로 추상화 수준이 내려감
 
-  - 해당 if문을 includeSetupsAndTeardownsIfTestPate로 변경하는 것은 같은 내용을 다르게 표현할 뿐 추상화 수준을 바꾸지는 않는 것
+  - 해당 if문을 includeSetupsAndTeardownsIfTestPage로 변경하는 것은 같은 내용을 다르게 표현할 뿐 추상화 수준을 바꾸지는 않는 것
 
 
 <br>
@@ -331,7 +331,7 @@ public class EmployeeFactoryImpl implements EmployeeFactory {
 - 삼항 함수
 
   - 인수가 3개는 당연히 2개 보다도 어려움
-  - assertEquals(1.0, amount, .001)은 괜찮다?
+  - assertEquals(1.0, amount, .001)은 괜찮다? >> 부동소수점 비교가 필요하기 때문
   
 - 인수 객체
 
@@ -572,14 +572,14 @@ public static String testableHtml(PageData pageData, boolean includeSuiteSetup) 
     WikiPage wikiPage = pageData.getWikiPage();
     StringBuffer buffer = new StringBuffer();
 
-    if (pageData.hasAttribute("Test")) {
-        if (includeSuiteSetup) {
-            WikiPage suiteSetup = PageCrawlerImpl.getInheritedPage(SuiteResponder.SUITE_SETUP_NAME, wikiPage);
+    if (pageData.hasAttribute("Test")) {   // pageData가 테스트 페이지인지 검사하는 로직 중복
+        if (includeSuiteSetup) {  // Suite setup 페이지들을 포함하는지 검사하는 로직 중복
+            WikiPage suiteSetup = PageCrawlerImpl.getInheritedPage(SuiteResponder.SUITE_SETUP_NAME, wikiPage); // inheritedPage 조회 로직 중복
 
             if (suiteSetup != null) {
                 WikiPagePath pagePath = suiteSetup.getPageCrawler().getFullPath(suiteSetup);
-                String pagePathName = PathParser.render(pagePath);
-                buffer.append("!include -setup .")
+                String pagePathName = PathParser.render(pagePath);  // finding path 로직 중복
+                buffer.append("!include -setup .")  // build 로직 중복
                         .append(pagePathName)
                         .append("\n");
             }
@@ -587,7 +587,7 @@ public static String testableHtml(PageData pageData, boolean includeSuiteSetup) 
     }
 
     WikiPage setup = PageCrawlerImpl.getInheritedPage("Setup", wikiPage);
-    if (setup != null) {
+    if (setup != null) {  // setup & teardown inheritedPage 여부 검사 로직 중복
         WikiPagePath setupPath = wikiPage.getPageCrawler().getFullPath(setup);
         String setupPathName = PathParser.render(setupPath);
         buffer.append("!include -setup .")
@@ -663,7 +663,125 @@ public static String renderPageWithSetupAndTeardowns(PageData pageData, boolean 
 ##### better example
 
 ```java
+// SetupTeardownIncluder 객체는 render method만을 공개하여 내부 로직 캡슐화
+// private 생성자를 이용해 인스턴스화 & 상속 제한
+// Util성 클래스화
+public class SetupTeardownIncluder {
+    // PageData
+    //  - variables: WikiPage, Test 페이지 여부
+    //  - methods: getHtml(), hasAttribute(), getContent(), setContent()
+    private PageData pageData;
+    private boolean isSuite;
+    private WikiPage testPage;
+    private PageCrawler pageCrawler;
+    private StringBuffer newPageContent;
+		
+    /* render */
+    // PageData만으로 rendering(default no suite)
+    public static String render(PageData pageData) throws Exception {
+        return render(pageData, false);
+    }
+    
+    // PageData & Suite 페이지 포함 여부로 rendering
+    public static String render(PageData pageData, boolean isSuite) throws Exception {
+        return new SetupTeardownIncluder(pageData).render(isSuite);
+    }
+    
+    private SetupTeardownIncluder(PageData pageData) {
+        this.pageData = pageData;
+        testPage = pageData.getWikiPage();
+        pageCrawler = testPage.getPageCrawler();
+        newPageContent = new StringBuffer();
+    }
 
+    private String render(boolean isSuite) throws Exception {
+        this.isSuite = isSuite;
+        if (isTestPage()) {
+            includeSetupAndTeardownPages();
+        }
+        return pageData.getHtml();
+    }
+
+    private boolean isTestPage() throws Exception {
+        return pageData.hasAttribute("Test");
+    }
+		
+    /* include setup and teardown pages with suite pages if exists */
+    private void includeSetupAndTeardownPages() throws Exception {
+        includeSetupPages();
+        includePageContent();
+        includeTeardownPages();
+        updatePageContent();
+    }
+
+    private void includeSetupPages() throws Exception {
+        if (isSuite) {
+            includeSuiteSetupPage();
+        }
+        includeSetupPage();
+    }
+
+    private void includeSuiteSetupPage() throws Exception {
+        include(SuiteResponder.SUITE_SETUP_NAME, "-setup");
+    }
+
+    private void includeSetupPage() throws Exception {
+        include("Setup", "-setup");
+    }
+
+    private void includePageContent() throws Exception {
+        newPageContent.append(pageData.getContent());
+    }
+
+    private void includeTeardownPages() throws Exception {
+        includeTeardownPage();
+        if (isSuite) {
+            includeSuiteTeardownPage();
+        }
+    }
+
+    private void includeTeardownPage() throws Exception {
+        include("TearDown", "-teardown");
+    }
+
+    private void includeSuiteTeardownPage() throws Exception {
+        include(SuiteResponder.SUITE_TEARDOWN_NAME, "-teardown");
+    }
+
+    private void updatePageContent() throws Exception {
+        pageData.setContent(newPageContent.toString());
+    }
+		
+    /* include method 
+     *  - inheritedPage가 있을 시 build(buffer writing)
+     */
+    private void include(String pageName, String arg) throws Exception {
+        WikiPage inheritedPage = findInheritedPage(pageName);
+        if (inheritedPage != null) {
+            String pagePathName = getPathNameForPage(inheritedPage);
+            buildIncludeDirective(pagePathName, arg);
+        }
+    }
+
+    /* find inherited page and build */
+    private WikiPage findInheritedPage(String pageName) throws Exception {
+        return PageCrawlerImpl.getInheritedPage(pageName, testPage);
+    }
+
+    private String getPathNameForPage(WikiPage page) throws Exception {
+        WikiPagePath pagePath = pageCrawler.getFullPath(page);
+        return PathParser.render(pagePath);
+    }
+
+    private void buildIncludeDirective(String pagePathName, String arg) {
+        newPageContent
+                .append("\n!include ")
+                .append(arg)
+                .append(" .")
+                .append(pagePathName)
+                .append("\n");
+    }
+}
 ```
 
 
