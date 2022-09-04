@@ -11,6 +11,10 @@
 > [ITEM 19. 상속을 고려해 설계하고 문서화하라. 그러지 않았다면 상속을 금지하라](#ITEM-19.-상속을-고려해-설계하고-문서화하라.-그러지-않았다면-상속을-금지하라)
 >
 > [ITEM 20. 추상 클래스보다는 인터페이스를 우선하라](#ITEM-20.-추상-클래스보다는-인터페이스를-우선하라)
+>
+> [ITEM 21. 인터페이스는 구현하는 쪽을 생각해 설계하라](#ITEM-21.-인터페이스는-구현하는-쪽을-생각해-설계하라)
+>
+> [ITEM 22. 인터페이스는 타입을 정의하는 용도로만 사용하라](#ITEM-22.-인터페이스는-타입을-정의하는-용도로만-사용하라)
 
 <br>
 
@@ -181,7 +185,7 @@ public final class Complex {
 - 불변 클래스는 자주 사용되는 인스턴스를 캐싱하여 같은 인스턴스를 중복 생성하지 않게 해주는 정적 팩터리를 제공할 수 있음
 
   - 여러 클라이언트가 인스턴스를 공유하여 메모리 사용량과 가비지 컬렉션 비용이 줄어듬
-  - 새로운 클래스를 설계할 때 public 생성자 대신 정적 팩터리를 만들어두면, 클라이언트를 수정하지 ㅇ낳고도 필요에 따라 캐시 기능을 나중에 덧붙일 수 있음
+  - 새로운 클래스를 설계할 때 public 생성자 대신 정적 팩터리를 만들어두면, 클라이언트를 수정하지 않고도 필요에 따라 캐시 기능을 나중에 덧붙일 수 있음
 
 - 불변 객체를 자유롭게 공유할 수 있다는 점은 방어적 복사도 필요 없다는 결론으로 이어짐
 
@@ -672,7 +676,7 @@ public class ForwardingSet<E> implements Set<E> {
     }
     ```
 
-    - Map.Entry 인터페이스나 그 하위 인터페이스로는 이 골격 구현을 제공할 수 없음. 디폴트 메서드는 equals, hashCode, toString 같은 Object 메서드를 재저으이할 수 없기 때문
+    - Map.Entry 인터페이스나 그 하위 인터페이스로는 이 골격 구현을 제공할 수 없음. 디폴트 메서드는 equals, hashCode, toString 같은 Object 메서드를 재정의할 수 없기 때문
     - 골격 구현은 기본적으로 상속해서 사용하는 것을 가정하므로 설계 및 문서화 지침을 모두 따라야 함
 
   - 단순 구현(simple implementation)은 골격 구현의 작은 변종
@@ -739,6 +743,89 @@ public class ForwardingSet<E> implements Set<E> {
       - getKey(), getValue(), setValue(), equals(), hashCode(), toString() 구현
 
 <br>
+
+## ITEM 21. 인터페이스는 구현하는 쪽을 생각해 설계하라
+
+##### default method in interface. since jdk 1.8
+
+- 디폴트 메서드 선언 시 구체 클래스에서 overriding 없이 사용할 수 있게 되었지만 모든 구현체와 매끄럽게 연동되리라는 보장은 없음
+
+- 생각할 수 있는 모든 상황에서 불변식을 해치지 않는 디폴트 메서드를 작성하기는 어려움
+
+  - 예시(interface Collection, `removeIf` method since jdk 1.8)
+
+    ```java
+    default boolean removeIf(Predicate<? super E> filter) {
+        Objects.requireNonNull(filter);
+        boolean result = false;
+        for (Iterator<E> it = iterator(); it.hasNext()) {
+            if (filter.test(it.next())) {
+                it.remove();
+                result = true;
+            }
+        }
+    }
+    ```
+
+    - default 메서드를 범용적으로 구현하였다고 해서 모든 Collection 구현체와 잘 어우러지는 것은 아님
+    - org.apache.commons.collections4.collection.SynchronizedCollection
+      - 해당 컬렉션에서 removeIf를 재정의하고 있지 않아 동기화해주지 못하는 현상이 발생
+
+- 자바 플랫폼 라이브러리에서는 이런 문제를 예방하기 위해 일련의 조치를 취함
+
+  - 구현한 인터페이스의 디폴트 메서드를 재정의하고, 다른 메서드에서는 디폴트 메서드를 호출하기 전에 필요한 작업을 수행하도록 함
+  - 예컨데 Collections.synchronizedCollection이 반환하는 package-private 클래스들은 removeIf를 재정의하고, 이를 호출하는 다른 메서드들은 디폴트 구현을 호출하기 전에 동기화하도록 함
+
+- 디폴트 메서드는 (컴파일에 성공하더라도) 기존 구현체에 런타임 오류를 일으킬 수 있음
+
+- 기존 인터페이스에 디폴트 메서드로 새 메서드를 추가하는 일은 꼭 필요한 경우가 아니라면 피해야 함. 추가하려는 디폴트 메서드가 기존 구현체들과 충돌하지 않을지 심사숙고해야 함
+
+- 새로운 인터페이스를 만드는 경우라면 표준적인 메서드 구현을 제공하는 데 아주 유용하며, 그 인터페이스를 더 쉽게 구현해 활용할 수 있게끔 해줌(아이템 20)
+
+- 결론적으로 인터페이스를 설계할 때는 여전히 세심한 주의를 기울여야 함
+
+  - 새로운 인터페이스라면 릴리스 전에 반드시 테스트를 거쳐야 함
+  - 서로다른 방식으로 최소한 세가지는 구현해봐야 함
+  - 인터페이스를 다양한 작업에 활용하는 클라이언트도 여러 개 만들어봐야 함
+
+<br>
+
+## ITEM 22. 인터페이스는 타입을 정의하는 용도로만 사용하라
+
+> 인터페이스는 자신을 구현한 클래스의 인스턴스를 참조할 수 있는 타입 역할을 함
+>
+> 달리 말해 클래스가 어떤 인터페이스를 구현한다는 것은 자신의 인스턴스로 무엇을 할 수 있는지를 클라이언트에 얘기해주는 것
+>
+> 인터페이스는 오직 이 용도로만 사용해야 함
+
+##### 상수 인터페이스
+
+```java
+static final double AVOGADROS_NUMBER = 6.022_140_857e23;
+static final double BOLTZMANN_CONSTANT = 1.380_648_52e-23;
+// ...
+```
+
+- 메서드 없이 상수를 뜻하는 static final 필드로만 구성된 인터페이스
+- 상수 인터페이스 안티패턴은 인터페이스를 잘못 사용한 예
+- 클래스 내부에서 사용하는 상수는 외부 인터페이스가 아니라 내부 구현에 해당하므로, 상수 인터페이스를 구현하는 것은 이 내부 구현을 클래스의 API로 노출하는 행위
+- 클래스가 어떤 상수 인터페이스를 사용하든 사용자에게는 아무런 의미가 없고 클라이언트가 내부 구현에 해당하는 이 상수들에 종속되게 함
+
+##### 상수 유틸리티 클래스
+
+```java
+public class PhysicalConstants {
+    private PhysicalConstants() {}
+
+    public static final double AVOGADROS_NUMBER = 6.022_140_857e23;
+    public static final double BOLTZMANN_CONSTANT = 1.380_648_52e-23;
+}
+```
+
+- 특정 클래스나 인터페이스와 강하게 연관된 상수라면 그 클래스나 인터페이스 자체에 추가해야 함
+- 모든 숫자 기본 타입의 박싱 클래스가 대표적으로, Integer/Double에 선언된 MAX_VALUE, MIN_VALUE가 좋은 예
+- 열거 타입으로 나타내기 적합한 상수라면 열거 타입으로 만들어 공개하면 됨
+- 그것도 아니면 인스턴스화할 수 없는 유틸리티 클래스에 담아 공개
 
 [위로](#클래스와-인터페이스)
 
