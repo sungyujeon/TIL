@@ -15,6 +15,12 @@
 > [ITEM 21. 인터페이스는 구현하는 쪽을 생각해 설계하라](#ITEM-21.-인터페이스는-구현하는-쪽을-생각해-설계하라)
 >
 > [ITEM 22. 인터페이스는 타입을 정의하는 용도로만 사용하라](#ITEM-22.-인터페이스는-타입을-정의하는-용도로만-사용하라)
+>
+> [ITEM 23. 태그 달린 클래스보다는 클래스 계층구조를 활용하라](#ITEM-23.-태그-달린-클래스보다는-클래스-계층구조를-활용하라)
+>
+> [ITEM 24. 멤버 클래스는 되도록 static으로 만들라](#ITEM-24.-멤버-클래스는-되도록-static으로-만들라)
+>
+> [ITEM 25. 톱레벨 클래스는 한 파일에 하나만 담으라](#ITEM-25.-톱레벨-클래스는-한-파일에-하나만-담으라)
 
 <br>
 
@@ -826,6 +832,249 @@ public class PhysicalConstants {
 - 모든 숫자 기본 타입의 박싱 클래스가 대표적으로, Integer/Double에 선언된 MAX_VALUE, MIN_VALUE가 좋은 예
 - 열거 타입으로 나타내기 적합한 상수라면 열거 타입으로 만들어 공개하면 됨
 - 그것도 아니면 인스턴스화할 수 없는 유틸리티 클래스에 담아 공개
+
+<br>
+
+## ITEM 23. 태그 달린 클래스보다는 클래스 계층구조를 활용하라
+
+##### 태그 달린 클래스
+
+```java
+class Figure {
+    enum Shape {RECTANGLE, CIRCLE };
+
+    // 태그 필드 - 현재 모양을 나타낸다.
+    final Shape shape;
+
+    // 다음 필드들은 모양이 사각형(RECTANGLE)일 때만 쓰인다.
+    double length;
+    double width;
+
+    // 다음 필드는 모양이 원(CIRCLE)일 때만 쓰인다.
+    double radius;
+
+    // 원용 생성자
+    Figure(double radius) {
+        shape = Shape.CIRCLE;
+        this.radius = radius;
+    }
+
+    // 사각형용 생성자
+    Figure(double length, double width) {
+        shape = Shape.RECTANGLE;
+        this.length = length;
+        this.width = width;
+    }
+
+    double area() {
+        switch(shape) {
+            case RECTANGLE:
+                return length * width;
+            case CIRCLE:
+                return Math.PI * (radius * radius);
+            default:
+                throw new AssertionError(shape);
+        }
+    }
+}
+```
+
+- 태그 달린 클래스에는 단점이 한가득(장황하고 오류를 내기 쉽고 비효율적)
+  - 열거 타입 선언, 태그 필드, switch 등 쓸데 없는 코드 많음
+  - 여러 구현이 한 클래스에 혼합돼 있어서 가독성도 나쁨
+  - 다른 의미를 위한 코드도 함께 쓰여서 메모리도 많이 사용
+  - 필드들을 final로 선언하려면 해당 의미에 쓰이지 않는 필드들까지 생성자에서 초기화해야 함
+  - 다른 모양을 추가하려면 switch 문을 추가하는 등 코드 추가해야 함
+  - 인스턴스의 타입만으로 현재 나타내는 의미 알 수 없음
+
+<br>
+
+##### 계층 구조
+
+```java
+abstract class Figure {
+    abstract double area();
+}
+
+class Circle extends Figure {
+    final double radius;
+
+    Circle(double radius) {
+        this.radius = radius;
+    }
+
+    @Override
+    double area() {
+        return Math.PI * (radius * radius);
+    }
+}
+
+class Rectangle extends Figure {
+    final double length;
+    final double width;
+
+    public Rectangle(double length, double width) {
+        this.length = length;
+        this.width = width;
+    }
+
+    @Override
+    double area() {
+        return length * width;
+    }
+}
+```
+
+- 간결하고 명확
+- 각 의미를 독립된 클래스에 담아 관련 없던 데이터 필드 모두 제거
+- 모든 필드가 final
+- 생성자가 모든 필드를 남김없이 초기화하고 추상 메서드를 모두 구현했는지 컴파일러가 확인
+- 루트 클래스의 코드를 건드리지 않고 다른 프로그래머가 독립적으로 계층구조 확장하고 함께 사용 가능
+- 타입이 의미별로 따로 존재하니 변수의 의미를 명시하거나 제한할 수 있고, 또 특정 의미만 매개변수로 받을 수 있음
+- 타입 사이의 자연스러운 계층 관계를 반영할 수 있어서 유연성은 물론 컴파일타임 타입 검사 능력을 높여줌
+
+<br>
+
+## ITEM 24. 멤버 클래스는 되도록 static으로 만들라
+
+##### 중첩 클래스
+
+> 정적 멤버 클래스를 제외한 모든 클래스는 inner class에 해당
+
+- 정적 멤버 클래스
+
+  ```java
+  class Calculator {
+  
+      private (static) enum Operation {  // static is redundant for inner enum
+          PLUS, MINUS;
+      }
+  }
+  
+  ```
+
+  - 바깥 클래스와 함께 쓰일 때만 유용한 public 도우미 클래스로 쓰임
+  - 중첩 클래스의 인스턴스가 바깥 인스턴스와 독립적으로 존재할 수 있다면 정적 멤버 클래스로 만들어야 함
+  - 멤버 클래스에서 바깥 인스턴스에 접근할 일이 없다면 무조건 static을 붙여서 정적 멤버 클래스로 만들자
+
+- (비정적) 멤버 클래스
+
+  ```java
+  class Calculator {
+  
+      private int value = 10;
+  
+      private enum Operation {
+          PLUS, MINUS;
+      }
+  		
+      // 비정적 멤버 클래스
+      private class nonStaticClass {
+          void method() {
+              int innerValue = Calculator.this.value;
+          }
+      }
+  }
+  ```
+
+  - 비정적 멤버 클래스의 인스턴스는 바깥 클래스의 인스턴스와 암묵적으로 연결
+
+  - 비정적 멤버 클래스의 인스턴스 메서드에서 정규화된 this를 사용해 바깥 인스턴스의 메서드를 호출하거나 바깥 인스턴스의 참조를 가져올 수 있음
+
+  - 비정적 멤버 클래스는 바깥 인스턴스 없이는 생성할 수 없음
+
+  - static 생략 시 바깥 인스턴스로의 숨은 외부 참조를 갖게 됨
+
+    - 메모리 공간과 시간이 소비됨
+    - 가비지 컬렉션이 바깥 클래스의 인스턴스를 수거하지 못하게 하는 메모리 누수가 생길 수 있음
+
+  - 멤버 클래스가 public or protected라면 static 생략 시 공개 API가 되니 향후 static 을 붙이도록 변경하면 하위 호환성이 깨짐
+
+  - 비정적 멤버 클래스의 인스턴스와 바깥 인스턴스 사이의 관계는 멤버 클래스가 인스턴스화 될 때 확립되며, 이 관계는 바깥 클래스의 인스턴스 메서드에서 비정적 멤버 클래스의 생성자를 호출할 때 자동으로 만들어지는 것이 보통이지만, 드물게는 직접 `바깥 인스턴스의 클래스.new 비정적멤버클래스()`로 수동 생성하기도 함
+
+    ```java
+    class OuterClass {
+    
+        public static void main(String[] args) {
+            OuterClass outerClass = new OuterClass();
+            outerClass.new InnerClass();  // 수동 생성
+        }
+    
+        public void outerMethod() {
+            InnerClass innerClass = new InnerClass();  // 멤버 메서드 내 생성자 호출
+        }
+    
+        private class InnerClass {}
+    }
+    ```
+
+  - 어댑터 정의 시 자주 사용
+
+    ```java
+    public class HashMap<K,V> extends AbstractMap<K,V> {
+      
+        public Set<Map.Entry<K,V>> entrySet() {
+            Set<Map.Entry<K,V>> es;
+            return (es = entrySet) == null ? (entrySet = new EntrySet()) : es;
+        }
+    
+        final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
+            //...
+        }
+    }
+    ```
+
+    - 어떤 클래스의 인스턴스를 감싸 마치 다른 클래스의 인스턴스처럼 보이게 하는 뷰로 사용
+    - Map 인터페이스의 구현체들은 보통 (keySet, entrySet, values 메서드가 반환하는) 자신의 컬렉션 뷰를 구현할 때 비정적 멤버 클래스 사용
+
+- 익명 클래스
+
+  - 쓰이는 시점에 선언과 동시에 인스턴스가 만들어짐
+  - 선언한 지점에서만 인스턴스를 만들 수 있음
+  - Instanceof 검사나 클래스의 이름이 필요한 작업은 수행할 수 없음
+  - 여러 인터페이스 구현할 수 없음
+  - 인터페이스 구현하는 동시에 다른 클래스 상속할 수 없음
+  - 익명 클래스를 사용하는 클라이언트는 그 익명 클래스가 상위 타입에서 상속한 멤버 외에는 호출할 수 없음
+  - 표현식 중간에 등장하므로 짧지 않으면 가독성이 떨어짐
+  - 람다 지원 전에는 작은 함수 객체나 처리 객체를 만드는 데 익명 클래스를 주로 사용했으나, 람다 지원 후 자리 내줌
+  - 정적 팩터리 메서드를 구현할 때 쓰이기도 함
+
+- 지역 클래스
+
+  - 네가지 중첩 클래스 중 가장 드물게 사용
+  - 유효 범위가 지역변수와 같고, 지역변수 선언할 수 있는 곳이면 어디든 선언 가능
+  - 멤버 클래스처럼 이름이 있고 반복해서 사용 가능
+  - 익명 클래스처럼 비정적 문맥에서 사용될 때만 바깥 인스턴스 참조 가능
+  - 정적 멤버는 가질 수 없고 가독성을 위해 짧게 작성해야 함
+
+<br>
+
+## ITEM 25. 톱레벨 클래스는 한 파일에 하나만 담으라
+
+> 소스 파일 하나에 톱레벨 클래스를 여러 개 선언하면 무엇을 사용할지는 어느 소스 파일을 먼저 컴파일 하냐에 따라 달라짐
+
+```java
+// A.java
+class A {}
+class B {}
+
+// B.java
+class A {}
+class B {}
+```
+
+- `javac Main.java B.java` A,B 클래스 중복 정의
+- `javac Main.java` or `javac Main.java A.java` 컴파일 과정에서 결과가 달라짐
+
+
+
+##### 해결책
+
+- 톱레벨 클래스들(A.java, B.java)은 서로 다른 소스 파일로 분리하라
+- 굳이 여러 톱레벨 클래스를 한 파일에 담고 싶다면 정적 멤버 클래스 사용을 고민해라
+  - 다른 클래스에 딸린 부차적인 클래스라면 private static 클래스로 만들어 가독성 좋고 접근 범위도 최소로 관리하라
+
+<br>
 
 [위로](#클래스와-인터페이스)
 
