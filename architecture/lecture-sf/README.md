@@ -46,7 +46,7 @@
 
 - 아키텍쳐 그리기
 
-  ![](architecture.png)
+  ![](./src/architecture.png)
 
 
 
@@ -74,7 +74,7 @@ API gateway?
 
 > 소규모 microservice 기반에서는 클라이언트-마이크로서비스 간 직접 통신이 적합하지만, 대규모 서비스 기반에서는 요청이 과다해지고, 의존성이 높아짐
 >
-> ![](c-s-direct.png)
+> ![](./src/c-s-direct.png)
 
 
 
@@ -87,13 +87,13 @@ API gateway?
 - 각 서비스 간 권한 부여, 보안 등의 구현이 복잡해질 수 있는데, api gateway pattern을 이용하면 client에서 직접 서비스에 액세스 하는 것이 아니라 gateway에만 접근 가능하게 하여 한 곳에서 구현 가능
 - 라우팅, 로드밸런싱 가능
 
-![](api-gateway.png)
+![](./src/api-gateway.png)
 
 
 
 - Multiple API Gateways
 
-  ![](multiple-gateways.png)
+  ![](./src/multiple-gateways.png)
 
 - API Management
   - AWS API Gateway
