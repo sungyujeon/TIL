@@ -2,9 +2,9 @@
 
 > system design interview by Alex Xu
 >
-> 2022.11.8 ~
+> 2022.11.15 ~
 
-1장. 사용자 수에 따른 규모 확장성 Sacle From Zero To Millions Of Users
+[1장. 사용자 수에 따른 규모 확장성 Sacle From Zero To Millions Of Users](https://github.com/sungyujeon/TIL/tree/master/architecture/system-design-interview/chapter01)
 
 2장. 개략적인 규모 측정 Back-of-the-envelope Estimation
 
