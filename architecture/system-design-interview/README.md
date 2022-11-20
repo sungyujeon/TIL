@@ -6,7 +6,7 @@
 
 [1장. 사용자 수에 따른 규모 확장성 Sacle From Zero To Millions Of Users](https://github.com/sungyujeon/TIL/tree/master/architecture/system-design-interview/chapter01)
 
-2장. 개략적인 규모 측정 Back-of-the-envelope Estimation
+[2장. 개략적인 규모 추정 Back-of-the-envelope Estimation](https://github.com/sungyujeon/TIL/tree/master/architecture/system-design-interview/chapter02)
 
 3장. 시스템 설계 면접 공략법 A Framework For System Design Interviews
 
