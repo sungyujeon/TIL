@@ -67,10 +67,10 @@
       if (Math.abs(desiredDimension - imageDimension) < errorThreshold) {
           return;
       }
-      float scalingFacotr = desiredDimension / imageDimension;
-      scalingFacotr = (float)(Math.floor(scalingFacotr * 100) * 0.01f);
+      float scalingFactor = desiredDimension / imageDimension;
+      scalingFactor = (float)(Math.floor(scalingFactor * 100) * 0.01f);
       
-      RenderedOp newImage = ImageUtilities.getScaledImage(image, scalingFacotr, scalingFacotr);
+      RenderedOp newImage = ImageUtilities.getScaledImage(image, scalingFactor, scalingFactor);
       image.dispose();
       System.gc();
       image = newImage;
@@ -88,10 +88,10 @@
       if (Math.abs(desiredDimension - imageDimension) < errorThreshold) {
           return;
       }
-      float scalingFacotr = desiredDimension / imageDimension;
-      scalingFacotr = (float)(Math.floor(scalingFacotr * 100) * 0.01f);
+      float scalingFactor = desiredDimension / imageDimension;
+      scalingFactor = (float)(Math.floor(scalingFactor * 100) * 0.01f);
   
-      replaceImage(ImageUtilities.getScaledImage(image, scalingFacotr, scalingFacotr));
+      replaceImage(ImageUtilities.getScaledImage(image, scalingFactor, scalingFactor));
   }
   
   public synchronized void rotate(int degrees) {
@@ -185,7 +185,6 @@
     - 예를 들어 클래스가 COMMAND나 VISITOR와 같은 표준 패턴을 사용한다면 클래스 이름에 패턴 이름을 넣는다(이로써 다른 개발자가 클래스 설계 의도를 이해하기 쉬워짐)
   - 단위 테스트 케이스를 꼼꼼히 작성한다
     - 테스트 케이스는 소위 '예제로 보여주는 문서'다!
-  - 노오력?
 
 <br>
 
