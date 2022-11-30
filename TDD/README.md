@@ -4,7 +4,11 @@
 >
 > 2022\. 04. 06. ~
 
+<br>
 
+[(연습) TDD를 활용한 자동차경주 게임 구현](https://github.com/sungyujeon/java-racingcar-precourse/commits/master)
+
+<br>
 
 ## TDD를 읽는 이유
 
