@@ -3,6 +3,8 @@
 > [ITEM 26. RAW 타입은 사용하지 말라](#ITEM-26.-RAW-타입은-사용하지-말라)
 >
 > [ITEM 27. 비검사 경고를 제거하라](#ITEM-27.-비검사-경고를-제거하라)
+>
+> [ITEM 28. 배열보다는 리스트를 사용하라](#ITEM-28.-배열보다는-리스트를-사용하라)
 
 - 제네릭(generic)은 자바 5부터 사용(제네릭 지원 전에는 컬렉션에서 객체를 꺼낼 때마다 형변환 해야 했음)
 - 제네릭을 사용하면 컬렉션이 담을 수 있는 타입을 컴파일러에 알려주게 됨
@@ -218,6 +220,158 @@ static int numElementsInCommon(Set<?> s1, Set<?> s2) { ... }
   - return 문에는 @SuppressWarnings 애너테이션을 다는 게 불가능함
   - 메서드 전체에 달고 싶지만, 범위가 필요 이상으로 넓어지므로 반환값을 담을 지역변수를 선언하고 그 변수에 애너테이션을 달아줌
   - **경고를 무시해도 안전한 이유를 항상 주석으로 남겨야 함**
+
+<br>
+
+## ITEM 28. 배열보다는 리스트를 사용하라
+
+##### 배열과 제네릭 타입의 차이점
+
+- 첫번째, 배열은 공변(covariant), 제네릭은 불공변(invariant)
+
+  - Sub가 Super의 하위타입이라면 배열 Sub[]는 배열 Super[]의 하위 타입이 됨(공변, 즉 함께 변한다는 뜻)
+
+  - 제네릭은 Type1, Type2가 있을 때 List\<Type1>은 List\<Type2>의 하위타입도 아니고 상위 타입도 아님
+
+  - 예시
+
+    - 배열
+
+      ```java
+      Object[] objectArray = new Long[1];
+      objectArray[0] = "타입이 달라 넣을 수 없다";
+      ```
+
+      - runtime 실패
+
+      - ArrayStoreException 발생
+
+    - 제네릭
+
+      ```java
+      List<Object> ol = new ArrayList<Long>();
+      ol.add("타입이 달라 넣을 수 없음");
+      ```
+
+      - compile 실패
+
+- 두번째, 배열은 실체화(reify), 제네릭은 타입정보가 런타임에 소거(erasure)
+
+  - 배열은 런타임에도 자신이 담기로 한 원소의 타입을 인지하고 확인
+    - 위 예시에서 보듯 Long 배열에 String을 넣으려 하면 ArrayStoreException 발생
+  - 반면 제네릭은 타입 정보가 런타임에는 소거(erasure)
+    - 원소 타입을 컴파일타임에만 검사하며 런타임에는 알 수조차 없음
+    - 소거는 제네릭이 지원되기 전의 레거시 코드와 제네릭 타입을 함께 사용할 수 있게 해주는 메커니즘
+
+##### 실체화 불가 타입(non-refiable type)
+
+> E, List\<E>, List\<String> 같은 타입
+
+- 배열은 제네릭 타입, 매개변수화 타입, 타입 매개변수로 사용할 수 없음
+  - new List\<E>[], List\<String>[], new E[] 식으로 작성하면 컴파일 시 제네릭 배열 생성 오류를 일으킴
+  - 제네릭 배열을 만들지 못하게 막은 이유
+    - 타입 안전하지 않음
+    - 만약 이를 허용한다면 컴파일러가 자동 생성한 형변환 코드에서 런타임에 ClassCastException이 발생할 수 있음
+    - 이는 런타임에 ClassCastException이 발생하는 일을 막아주겠다는 제네릭 타입 시스템의 취지에 어긋나는 것
+
+- 실체화되지 않아서 런타임에는 컴파일타임보다 타입 정보를 적게 가지는 타입
+
+- 소거 메커니즘 때문에 매개변수화 타입 가운데 실체화될 수 있는 타입은 `List<?>와 Map<?, ?>` 같은 비한정적 와일드카드 타입 뿐임
+
+  (배열을 비한정적 와일드카드 타입으로 만들 수는 있지만 유용하게 쓸일 일은 거의 없음)
+
+- 배열을 제네릭 타입으로 만들 수 없어 귀찮을 때도 있음
+
+  - 제네릭 컬렉션에서는 자신의 원소 타입을 담은 배열을 반환하는 게 보통은 불가능(완벽하지는 않지만 대부분의 상황에서 이 문제를 해결해주는 방법은 item 33 참고)
+  - 제네릭 타입과 가변인수 메서드(varargs method, item53)을 함께 쓰면 해석하기 어려운 경고 메시지를 받게 됨
+    - 가변인수 메서드를 호출할 때마다 가변인수 매개변수를 담을 배열이 하나 만들어지는데, 이 때 그 배열의 원소가 실체화 불가 타입이라면 경고가 발생
+    - `@SafeVarargs` 애너테이션으로 대처 가능(item32)
+
+- 배열로 형변환할 때 제네릭 배열 생성 오류나 비검사 형변환 경고가 뜨는 경우 대부분은 배열인 E[] 대신 컬렉션인 List\<E>를 사용하면 해결
+
+  - 코드가 조금 복잡해지고 성능이 살짝 나빠질 수도 있지만, 그 대신 타입 안전성과 상호운용성은 좋아짐
+
+- 예시
+
+  - 제네릭을 적용하지 않은 클래스
+
+    ```java
+    public class Chooser {
+    
+        private final Object[] choiceArray;
+    
+        public Chooser(Collection choices) {
+            this.choiceArray = choices.toArray();
+        }
+    
+        public Object choose() {
+            Random random = ThreadLocalRandom.current()
+                    return choiceArray[random.nextInt(choiceArray.length)];
+        }
+    }
+    ```
+
+    - choose 메서드를 호출할 때마다 반환된 Object를 원하는 타입으로 형변환해야 함
+
+    - 혹시나 타입이 다른 원소가 들어 있었다면 런타임에 형변환 오류가 남
+
+  - 제네릭 적용1: 컴파일 오류
+
+    ```java
+    class GenericChooser<T> {
+        private final T[] choiceArray;
+    
+        public GenericChooser(Collection<T> choices) {
+            this.choiceArray = choices.toArray();  // error
+        }
+    }
+    ```
+
+    - choices.toArray() 에서 Object[] cannot be converted to T[] error 발생
+
+  - 제네릭 적용2
+
+    ```java
+    class GenericChooser<T> {
+        private final T[] choiceArray;
+    
+        public GenericChooser(Collection<T> choices) {
+            this.choiceArray = (T[]) choices.toArray();
+        }
+      
+        public T choose() {
+            Random random = ThreadLocalRandom.current()
+                    return choiceArray[random.nextInt(choiceArray.length)];
+        }
+    }
+    ```
+
+    - T가 무슨 타입인지 알 수 없으니 컴파일러는 형변환이 런타임에도 안전한지 보장할 수 없음([unchecked] unchecked cast)
+
+      ~~실제 컴파일 에러가 발생하지 않음~~
+
+    - 동작은 하지만 컴파일러가 안전을 보장하지 못할 뿐이므로, 안전하다고 확신한다면 주석을 남기고 애너테이션을 달아 경고를 숨겨도 됨
+
+  - 제네릭 적용3
+
+    ```java
+    class GenericListChooser<T> {
+    
+        private final List<T> choiceArray;
+    
+        public GenericListChooser(Collection<T> choices) {
+            this.choiceArray = new ArrayList<>(choices);
+        }
+    
+        public T choose() {
+            Random random = ThreadLocalRandom.current();
+            return choiceArray.get(random.nextInt(choiceArray.size()));
+        }
+    }
+    ```
+
+    - 배열 대신 리스트를 쓰면 Chooser는 오류나 경고 없이 컴파일 됨
+    - 코드양이 조금 늘고 더 느릴테지만, 런타임에 ClassCastException을 만날 일이 없으니 그만한 가치가 있음
 
 [위로](#제네릭)
 
