@@ -5,6 +5,10 @@
 > [ITEM 27. 비검사 경고를 제거하라](#ITEM-27.-비검사-경고를-제거하라)
 >
 > [ITEM 28. 배열보다는 리스트를 사용하라](#ITEM-28.-배열보다는-리스트를-사용하라)
+>
+> [ITEM 29. 이왕이면 제네릭 타입으로 만들라](#ITEM-29.-이왕이면-제네릭-타입으로-만들라)
+>
+> [ITEM 30. 이왕이면 제네릭 메서드로 만들라](#ITEM-30.-이왕이면-제네릭-메서드로-만들라)
 
 - 제네릭(generic)은 자바 5부터 사용(제네릭 지원 전에는 컬렉션에서 객체를 꺼낼 때마다 형변환 해야 했음)
 - 제네릭을 사용하면 컬렉션이 담을 수 있는 타입을 컴파일러에 알려주게 됨
@@ -372,6 +376,292 @@ static int numElementsInCommon(Set<?> s1, Set<?> s2) { ... }
 
     - 배열 대신 리스트를 쓰면 Chooser는 오류나 경고 없이 컴파일 됨
     - 코드양이 조금 늘고 더 느릴테지만, 런타임에 ClassCastException을 만날 일이 없으니 그만한 가치가 있음
+
+<br>
+
+## ITEM 29. 이왕이면 제네릭 타입으로 만들라
+
+##### Object 타입을 활용한 Stack class
+
+```java
+public class Stack {
+
+    private Object[] elements;
+    private int size = 0;
+    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+    public Stack() {
+        elements = new Object[DEFAULT_INITIAL_CAPACITY];
+    }
+
+    public void push(Object e) {
+        ensureCapacity();
+        elements[size++] = e;
+    }
+
+    public Object pop() {
+        if (size == 0) {
+            throw new EmptyStackException();
+        }
+        Object result = elements[--size];
+        elements[size] = null;
+        return result;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    private void ensureCapacity() {
+        if (elements.length == size) {
+            elements = Arrays.copyOf(elements, 2 * size +1);
+        }
+    }
+}
+```
+
+- 위 클래스는 원래 제네릭 타입이어야 마땅함
+- Object 타입을 사용할 때 클라이언트는 스택에서 꺼낸 객체를 형변환해야 하는데, 이 때 런타임 오류가 날 위험이 있음
+
+<br>
+
+##### Generic 이용한 Stack class
+
+```java
+public class Stack<E> {
+
+    private E[] elements;
+    private int size = 0;
+    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+    public Stack() {
+        elements = (E[]) new Object[DEFAULT_INITIAL_CAPACITY];
+    }
+
+    public void push(E e) {
+        ensureCapacity();
+        elements[size++] = e;
+    }
+
+    public E pop() {
+        if (size == 0) {
+            throw new EmptyStackException();
+        }
+        E result = elements[--size];
+        elements[size] = null;
+        return result;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    private void ensureCapacity() {
+        if (elements.length == size) {
+            elements = Arrays.copyOf(elements, 2 * size +1);
+        }
+    }
+}
+```
+
+- 클래스 선언에 타입 매개변수 추가(보통 `E`를 사용, item68)
+
+- 제네릭 배열을 만드는 과정에서 오류가 남
+
+  - E와 같은 실체화 불가 타입으로는 배열을 만들 수 없음
+
+- 해결책1
+
+  - 제네릭 배열 생성을 금지하는 제약을 대놓고 우회하는 방법
+
+  - Object 배열을 생성한 다음 제네릭 배열로 형변화
+
+    `(E[] new Object[DEFAULT_INITIAL_CAPACITY])`
+
+    - 'unchecked cast' warning 발생하여 일반적으로 타입 안전하지 않음
+
+    - 하지만 문제의 배열 elements는 private 필드에 저장되고, 클라이언트로 반환되거나 다른 메서드에 전달되는 일이 전혀 없음. push 메서드를 통해 배열에 저장되는 원소의 타입도 항상 E이므로, 이 비검사 형변환은 확실히 안전함
+
+    - 비검사 형변환이 안전함을 직접 증명했다면, 범위를 최소로 좁혀 `@SuppressWarnings` 애너테이션으로 해당 경고를 숨김(해당 예제에서는 생성자가 비검사 배열 생성 말고는 하는 일이 없으니 생성자 전체에서 경고를 숨겨도 괜찮음)
+
+      ```java
+      @SuppressWarnings("unchecked")
+      public Stack() {
+        elements = (E[]) new Object[DEFAULT_INITIAL_CAPACITY];
+      }
+      ```
+
+- 해결책2
+
+  - elements 필드의 타입을 E[]에서 Object[]로 바꿈
+
+  - 이경우 E는 실체화 불가 타입이므로 컴파일러는 런타임에 이뤄지는 형변환이 안전한지 증명할 방법이 없음
+
+  - 배열이 반환한 원소를 E로 형변환하면 오류 대신 경고가 뜸
+
+    `E result = (E) elements[--size];`
+
+    ~~실제로는 에러가 나지 않는다. elements의 요소에는 생성자 코드를 통해 형변환하여 E 제네릭 타입만 들어가므로 pop() 메서드에서도 자동 형변환이 일어난다~~
+
+- 두 해결책 모두 나름의 지지를 얻고 있음
+  - 첫번째는 가독성이 더 좋고, 코드도 더 짧음(배열의 타입을 E[]로 선언하여 오직 E타입 인스턴스만 받음을 확실히 함)
+  - 두번째는 배열에서 원소를 읽을 때마다 형변환을 해줘야 함
+  - 따라서 첫번째 방식이 더 선호되지만, (E가 Object가 아닌 한) 배열의 런타임 타입이 컴파일타임 타입과 달라 힙 오염(heap pollution, item32)을 일으킴
+
+##### 제네릭 배열과 리스트
+
+- 위 Stack 예제는 item 28(배열보다는 리스트를 우선하라)와 모순되어 보임
+
+- 하지만 제네릭 타입 안에서 리스트를 사용하는 것이 항상 가능하지도, 꼭 더 좋은 것도 아님
+
+  - 자바가 리스트를 기본 타입으로 제공하지 않으므로 ArrayList 같은 제네릭 타입도 결국 기본 타입인 배열을 사용해 구현해야 함
+  - HashMap 같은 제네릭 타입은 성능을 높일 목적으로 배열을 사용하기도 함
+
+- Stack 예제처럼 대다수 제네릭 타입은 타입 매개변수에 아무런 제약을 두지 않음
+
+  - 어떤 참조 타입으로도 Stack을 만들 수 있음
+
+    `Stack<Object>` `Stack<int[]>` `Stack<List<String>>`...
+
+  - 단, 기본 타입은 사용할 수 없음
+
+    `Stack<int>` `Stack<double>` -> compile error
+
+    - 이는 자바 제네릭 타입 시스템의 근본적 문제이나, 박싱된 기본 타입을 사용해 우회할 수 있음 `Stack<Integer>`
+
+<br>
+
+## ITEM 30. 이왕이면 제네릭 메서드로 만들라
+
+> 클래스와 마찬가지로 메서드도 제네릭으로 만들 수 있음
+>
+> 매개변수화 타입을 받는 정적 유틸리티 메서드는 보통 제네릭
+>
+> - Collections의 binarySearch(), sort() 등
+>
+>   ```java
+>   public static <T> int binarySearch(List<? extends Comparable<? super T>> list, T key) {
+>       if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
+>           return Collections.indexedBinarySearch(list, key);
+>       else
+>           return Collections.iteratorBinarySearch(list, key);
+>   }
+>   ```
+
+##### 제네릭 메서드
+
+```java
+// bad
+// unchecked call to HashSet(Collection<? extends E>) as a member of raw type HashSet
+public static Set union(Set s1, Set s2) {
+    Set result = new HashSet(s1);
+    result.addAll(s2);
+    return result;
+}
+
+//good
+public static <E> Set<E> union(Set<E> s1, Set<E> s2) {
+    Set<E> result = new HashSet<>(s1);
+    result.addAll(s2);
+    return result;
+}
+
+//better, bounded wildcard type
+public static <E extends Super> Set<E> unions(Set<E> s1, Set<E> s2) {
+    //...
+}
+```
+
+- 원소 타입을 타입 매개변수로 명시하고, 메서드 안에서도 이 타입 매개변수만 사용하게 수정
+- (타입 매개변수들을 선언하는) 타입 매개변수 목록은 메서드의 제한자와 반환 타입 사이에 옴
+- ~~실제 실행 시 raw type도 정상 컴파일 및 실행됨. integerSet, stringSet을 인자로 전달하여도 Object로 받아들여 향후 사용 시 자동 형변환 함~~
+
+<br>
+
+##### 제네릭 싱글턴 팩터리(불변 객체를 여러 타입으로 활용)
+
+- 제네릭은 런타임에 타입 정보가 소거되므로, 하나의 객체를 어떤 타입으로든 매개변수화할 수 있음
+
+- 하지만 이렇게 하려면 요청한 타입 매개 변수에 맞게 매번 그 객체의 타입을 바꿔주는 정적 팩터리(generic singleton factory)를 만들어야 함
+
+  ```java
+  @SuppressWarnings("unchecked")
+  public static <T> Comparator<T> reverseOrder(Comparator<T> cmp) {
+      if (cmp == null) {
+          return (Comparator<T>) ReverseComparator.REVERSE_ORDER;
+      } else if (cmp == ReverseComparator.REVERSE_ORDER) {
+          return (Comparator<T>) Comparators.NaturalOrderComparator.INSTANCE;
+      } else if (cmp == Comparators.NaturalOrderComparator.INSTANCE) {
+          return (Comparator<T>) ReverseComparator.REVERSE_ORDER;
+      } else if (cmp instanceof ReverseComparator2) {
+          return ((ReverseComparator2<T>) cmp).cmp;
+      } else {
+          return new ReverseComparator2<>(cmp);
+      }
+  }
+  ```
+
+  - reverseOrder 함수 객체(item 42)
+
+<br>
+
+##### 항등함수(identity)를 담은 클래스
+
+- 직접 만든 제네릭 싱글턴 팩터리
+
+  ```java
+  // generic singleton factory pattern
+  @SuppressWarnings
+  private static UnaryOperator<Object> IDENTITY_FN = t -> t;
+  
+  public static <T> UnaryOperator<T> identityFunction() {
+      return (UnaryOperator<T>) IDENTITY_FN;
+  }
+  ```
+
+  - UnaryOperator\<Object>는 UnaryOperator\<T>가 아니기 때문에 비검사 형변환 경고 발생
+    - 하지만 항등함수란 입력 값을 수정 없이 그대로 반환하는 특별한 함수이므로, T가 어떤 타입이든 UnaryOperator\<T>를 사용해도 타입 안전
+  - 항등함수 객체는 상태가 없으므로 요청 시마다 새로 생성하는 것은 낭비
+  - 자바의 제네릭이 실체화된다면 항등함수를 타입별로 하나씩 만들어야 하지만, 소거 방식을 사용한 덕에 제네릭 싱글턴 하나면 충분함
+
+- 자바 라이브러리 Function.identity() 사용해도 됨
+
+  ```java
+  /**
+   * Returns a function that always returns its input argument.
+   */
+  static <T> Function<T, T> identity() {
+      return t -> t;
+  }
+  ```
+
+<br>
+
+##### 재귀적 타입 한정(recursive type bound)
+
+```java
+public interface Comparable<T> {
+    int compareTo(T o);
+}
+```
+
+- 드물지만 자기 자신이 들어간 표현식을 사용하여 타입 매개변수의 허용 범위를 한정
+
+- 타입의 자연적 순서를 정하는 Comparable 인터페이스와 함께 쓰임
+
+  - 타입 매개변수 T는 Comparable\<T>를 구현한 타입이 비교할 수 있는 원소의 타입을 정의(실제로 거의 모든 타입은 자신과 같은 타입의 원소와만 비교할 수 있음)
+  - 따라서 String은 Comparable\<String>을 구현하고, Integer는 Comparable\<Integer>를 구현함
+
+- Comparable을 구현한 원소의 컬렉션을 입력받는 메서드들은 주로 그 원소들을 정렬 혹은 검색하거나, 최솟값이나 최댓값을 구하는 식으로 사용
+
+  ```java
+  public static <E extends Comparable<E>> E max(Collection<E> c);
+  ```
+
+  - 해당 기능을 수행하려면 컬렉션에 담긴 모든 원소가 상호 비교될 수 있어야 함
+  - 타입 한정인 `<E extends Comparable<E>>`는 **모든 타입 E는 자신과 비교할 수 있다**(상호 비교 가능하다)는 뜻을 아주 정확하게 표현
+
+<br>
 
 [위로](#제네릭)
 
