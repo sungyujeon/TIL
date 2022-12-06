@@ -309,8 +309,8 @@ static int numElementsInCommon(Set<?> s1, Set<?> s2) { ... }
         }
     
         public Object choose() {
-            Random random = ThreadLocalRandom.current()
-                    return choiceArray[random.nextInt(choiceArray.length)];
+            Random random = ThreadLocalRandom.current();
+            return choiceArray[random.nextInt(choiceArray.length)];
         }
     }
     ```
@@ -352,14 +352,12 @@ static int numElementsInCommon(Set<?> s1, Set<?> s2) { ... }
 
     - T가 무슨 타입인지 알 수 없으니 컴파일러는 형변환이 런타임에도 안전한지 보장할 수 없음([unchecked] unchecked cast)
 
-      ~~실제 컴파일 에러가 발생하지 않음~~
-
     - 동작은 하지만 컴파일러가 안전을 보장하지 못할 뿐이므로, 안전하다고 확신한다면 주석을 남기고 애너테이션을 달아 경고를 숨겨도 됨
 
   - 제네릭 적용3
 
     ```java
-    class GenericListChooser<T> {
+  class GenericListChooser<T> {
     
         private final List<T> choiceArray;
     
@@ -373,9 +371,9 @@ static int numElementsInCommon(Set<?> s1, Set<?> s2) { ... }
         }
     }
     ```
-
+  
     - 배열 대신 리스트를 쓰면 Chooser는 오류나 경고 없이 컴파일 됨
-    - 코드양이 조금 늘고 더 느릴테지만, 런타임에 ClassCastException을 만날 일이 없으니 그만한 가치가 있음
+  - 코드양이 조금 늘고 더 느릴테지만, 런타임에 ClassCastException을 만날 일이 없으니 그만한 가치가 있음
 
 <br>
 
@@ -476,7 +474,7 @@ public class Stack<E> {
 
   - Object 배열을 생성한 다음 제네릭 배열로 형변화
 
-    `(E[] new Object[DEFAULT_INITIAL_CAPACITY])`
+    `(E[]) new Object[DEFAULT_INITIAL_CAPACITY]`
 
     - 'unchecked cast' warning 발생하여 일반적으로 타입 안전하지 않음
 
@@ -500,8 +498,6 @@ public class Stack<E> {
   - 배열이 반환한 원소를 E로 형변환하면 오류 대신 경고가 뜸
 
     `E result = (E) elements[--size];`
-
-    ~~실제로는 에러가 나지 않는다. elements의 요소에는 생성자 코드를 통해 형변환하여 E 제네릭 타입만 들어가므로 pop() 메서드에서도 자동 형변환이 일어난다~~
 
 - 두 해결책 모두 나름의 지지를 얻고 있음
   - 첫번째는 가독성이 더 좋고, 코드도 더 짧음(배열의 타입을 E[]로 선언하여 오직 E타입 인스턴스만 받음을 확실히 함)
@@ -574,7 +570,6 @@ public static <E extends Super> Set<E> unions(Set<E> s1, Set<E> s2) {
 
 - 원소 타입을 타입 매개변수로 명시하고, 메서드 안에서도 이 타입 매개변수만 사용하게 수정
 - (타입 매개변수들을 선언하는) 타입 매개변수 목록은 메서드의 제한자와 반환 타입 사이에 옴
-- ~~실제 실행 시 raw type도 정상 컴파일 및 실행됨. integerSet, stringSet을 인자로 전달하여도 Object로 받아들여 향후 사용 시 자동 형변환 함~~
 
 <br>
 
