@@ -9,6 +9,10 @@
 > [ITEM 29. 이왕이면 제네릭 타입으로 만들라](#ITEM-29.-이왕이면-제네릭-타입으로-만들라)
 >
 > [ITEM 30. 이왕이면 제네릭 메서드로 만들라](#ITEM-30.-이왕이면-제네릭-메서드로-만들라)
+>
+> [ITEM 31. 한정적 와일드카드를 사용해 API 유연성을 높이라](#ITEM-31.-한정적-와일드카드를-사용해-API-유연성을-높이라)
+>
+> [ITEM 32. 제네릭과 가변인수를 함께 쓸 때는 신중하라](#ITEM 32.-제네릭과-가변인수를-함께-쓸-때는-신중하라)
 
 - 제네릭(generic)은 자바 5부터 사용(제네릭 지원 전에는 컬렉션에서 객체를 꺼낼 때마다 형변환 해야 했음)
 - 제네릭을 사용하면 컬렉션이 담을 수 있는 타입을 컴파일러에 알려주게 됨
@@ -357,7 +361,7 @@ static int numElementsInCommon(Set<?> s1, Set<?> s2) { ... }
   - 제네릭 적용3
 
     ```java
-  class GenericListChooser<T> {
+    class GenericListChooser<T> {
     
         private final List<T> choiceArray;
     
@@ -655,6 +659,251 @@ public interface Comparable<T> {
 
   - 해당 기능을 수행하려면 컬렉션에 담긴 모든 원소가 상호 비교될 수 있어야 함
   - 타입 한정인 `<E extends Comparable<E>>`는 **모든 타입 E는 자신과 비교할 수 있다**(상호 비교 가능하다)는 뜻을 아주 정확하게 표현
+
+<br>
+
+## ITEM 31. 한정적 와일드카드를 사용해 API 유연성을 높이라
+
+##### 한정적 와일드카드
+
+```java
+// compile error
+// Stack<Integer>는 Stack<Number>의 하위타입이 아니다
+Stack<Number> numberStack = new Stack<>();
+Iterable<Integer> integers = ...;
+numberStack.pushAll(integers);
+
+// 한정적 와일드카드 사용(extends)
+// 'E의 하위타입의 Iterable 이어야 한다'
+public void pushAll(Iterable<? extends E> src) {
+    for (E e: src) push(e);
+}
+
+// 한정적 와일드카드 사용(super)
+// 'E의 상위 타입의 Collection 이어야 한다'
+public void popAll(Collection<? super E> dst) {
+    while (!isEmpty()) dst.add(pop());
+}
+```
+
+- 유연성을 극대화하려면 원소의 생사낮나 소비자용 입력 매개변수에 와일드카드 타입을 사용하라
+- 반면에 입력 매개변수가 생산자와 소비자 역할을 동시에 한다면 와일드카드 타입을 써도 좋을 게 없음
+  - 이는 타입을 정확히 지정해야 하는 상황이므로
+- PECS(producer-extends, consumer-super)
+  - 매개변수화 타입 T가 생산자라면 `<? extends T>`
+  - 소비자라면 `<? super T>` 사용
+
+##### 예제
+
+```java
+// 제네릭만 사용
+public static <E extends Comparable<E>> E max(List<E> list)
+  
+// 한정적 와일드카드 사용
+public static <E extends Comparable<? super E>> E max(List<? extends E> list)
+```
+
+- 입력 매개변수에서는 E 인스턴스를 생산하므로 `List<? extends E>` 로 수정
+- Comparable\<E>는 E 인스턴스를 소비하므로 `Comparable<? super E>` 로 수정
+
+##### 타입 매개변수와 와일드카드
+
+- 메서드 선언에 타입 매개변수가 한 번만 나오면 와일드 카드로 대체하라
+
+  - 비한정적 타입 매개변수라면 비한정적 와일드카드로 바꾸라
+
+  - 한정적 타입 매개변수라면 한정적 와일드카드로 바꾸라
+
+- 예외
+
+  ```java
+  // swap 메서드의 두 가지 선언
+  public static <E> void swap(List<E> list, int i, int j)
+  public static void swap(List<?> list, int i, int j)
+    
+  // compile error
+  public static void swap(List<?> list, int i, int j) {
+      list.set(i, list.set(j, list.get(i)));
+  }
+  ```
+
+  - public API라면 두번째 한정적 와일드 카드가 간단하여 더 나음
+
+    - 어떤 리스트든 이 메서드를 넘기면 명시한 인덱스의 원소를 교환
+    - 신경써야 할 타입 매개변수도 없음
+
+  - 컴파일 에러가 나는 원인은 리스트의 타입이 `List<?>`인데, `List<?>`에는 null 외에는 어떤 ㅌ값도 넣을 수 없기 때문
+
+    - 와일드카드 타입의 실제 타입을 알려주는 메서드를 private 도우미 메서드로 따로 작성하여 우회
+
+      ```java
+      public static void swap(List<?> list, int i, int j) {
+          swapHelper(list, i, j);
+      }
+      
+      private static <E> void swapHelper(List<E> list, int i, int j) {
+          list.set(i, list.set(j, list.get(i)));
+      }
+      ```
+
+      - swapHelper 메서드는 리스트가 `List<E>`임을 알고 있음
+      - 메서드 내부에서는 더 복잡한 제네릭 메서드를 이용했지만, 덕분에 외부에는 와일드카드 기반의 선언을 유지할 수 있음(즉 swap 메서드를 호출하는 클라이언트는 복잡한 swapHelper의 존재를 모른 채 그 혜택을 누리는 것)
+
+<br>
+
+## ITEM 32. 제네릭과 가변인수를 함께 쓸 때는 신중하라
+
+##### 제네릭과 가변인수의 부조화
+
+- 가변인수(varargs) 메서드와 제네릭은 자바 5 때 함께 추가되었으므로 잘 어우러질 것으로 기대하지만, 실제로는 그렇지 않음
+
+- 가변인수 메서드를 호출하면 가변인수를 담기 위한 배열이 하나 자동으로 만들어짐
+
+  - 내부로 감춰야 했을 이 배열을 클라이언트에게 노출하는 문제가 생김
+
+  - 그 결과 varargs 매개변수에 제네릭이나 매개변수화 타입이 포함되면 알기 어려운 컴파일 경고가 생김
+
+    (메서드를 선언할 때 실체화 불가 타입으로 varargs 매개변수를 선언하면 컴파일러가 경고를 보냄)
+
+    `warning [unchecked] Possible heap pollution from parameterized vararg type List<String>`
+
+- 결과
+
+  ```java
+  // stringLists[0] 에는 integer 42가 담겨있으므로 get() 메서드 호출 후 String ClassCast 시 exception
+  static void dangerous(List<String>... stringLists) {
+      List<Integer> intList = List.of(42);
+      Object[] objects = stringLists;
+      objects[0] = intList;  //힙 오염 발생
+      String s = stringLists[0].get(0);  //ClassCastException
+  }
+  ```
+
+  - 매개변수화 타입의 변수가 타입이 다른 객체를 참조하면 힙 오염이 발생
+  - 다른 타입 객체를 참조하는 상황에서는 컴파일러가 자동 생성한 형변환이 실패할 수 있으니, 제네릭 타입 시스템이 약속한 타입 안전성의 근간이 흔들림
+  - 제네릭 varargs 배열 매개변수에 값을 저장하는 것은 안전하지 않음
+
+##### 제네릭 varargs 매개변수를 받는 메서드를 선언할 수 있도록 한 이유
+
+- 제네릭 배열을 프로그래머가 직접 생성하는 건 허용하지 않지만, 제네릭 varargs 매개변수를 받는 메서드를 선언할 수 있음
+
+  - 제네릭이나 매개변수화 타입의 varargs 매개변수를 받는 메서드가 실무에서 매우 유용하기 때문으로, 언어 설계자는 이 모순을 수용하기로 함
+
+  - 예시
+
+    ```java
+    Arrays.asList(T... a)
+    Collections.addAll(Collection<? super T> c, T... elements)
+    EnumSet.of(E first, E... rset);
+    ```
+
+- 자바 7 이후의 @SafeVarargs
+
+  - 자바 7 전에는 제네릭 가변인수 메서드의 작성자가 호출자 쪽에서 발생하는 경고에 대해 해줄 수 있는 것이 없었음
+    - 클라이언트는 경고를 그냥 두거나 호출하는 곳에 @SuppressWarnings("unchecked") 애너테이션을 달아 경고를 숨겨야 했음
+  - 자바 7 이후에 @Safevarargs 애너테이션이 추가되어 메서드 작성자가 그 메서드가 타입 안전함을 보장하는 장치를 둘 수 있음
+  - 단, 메서드가 안전한게 확실하지 않다면 절대 @SafeVarargs 애너테이션을 달면 안됨
+
+##### 제네릭 varargs 매개변수를 받는 메서드가 안전한지 확신하는 방법
+
+가변인수 메서드를 호출할 때 <u>varargs 매개변수를 담는 제네릭 배열이 만들어진다는 사실을 기억</u>하자
+
+- 메서드가 이 배열에 아무것도 저장하지 않고(그 매개변수들을 덮어쓰지 않고)
+- 배열의 참조가 밖으로 노출되지 않는다면(신뢰할 수 없는 코드가 접근할 수 없다면) 안전
+
+```java
+// unsafe
+// 자신의 제네릭 매개변수 배열의 참조를 노출한다 - 안전하지 않음
+static <T> T[] toArray(T... args) {
+    return args;
+}
+```
+
+- 메서드가 반환하는 배열의 타입은 이 메서드에 인수를 넘기는 컴파일타임에 결정
+- 그 시점에는 컴파일러에게 충분한 정보가 주어지지 않아 타입을 잘못 판단할 수 있음
+- 따라서 자신의 varargs 매개변수 배열을 그대로 반환하면 힙 오염을 이 메서드를 호출한 쪽의 콜스택으로까지 전이하는 결과를 낳음
+
+##### 에러 예시
+
+```java
+// bad
+static <T> T[] pickTwo(T a, T b, T c) {
+    switch(ThreadLocalRandom.current().nextInt(3)) {
+        case 0: return toArray(a, b);
+        case 1: return toArray(a, c); 
+        case 2: return toArray(b, c);
+    }
+    throw new AssertionError();
+}
+```
+
+- 제네릭 가변인수를 받는 toArray 메서드를 호출한다는 점만 빼면 위험하지도 않고 경고를 내지 않음
+
+- 컴파일러 동작
+
+  - toArray에 넘길 T 인스턴스 2개를 담을 varargs 매개변수 배열을 만드는 코드 생성
+  - 이 코드가 만드는 배열의 타입은 Object[]인데, pickTwo에 어떤 타입의 객체를 넘기더라도 담을 수 있는 가장 구체적 타입이기 때문
+  - 이후 toArray 메서드가 돌려준 이 배열이 그대로 pickTwo를 호출한 클라이언트까지 전달
+  - 따라서 pickTwo는 항상 Object[] 타입 배열을 반환
+
+- runtime 실행
+
+  ```java
+  public static void main(String[] args) {
+    String[] attribtues = pickTwo("1", "2", "3");
+  }
+  ```
+
+  - 컴파일은 문제가 없지만, 실행하면 ClassCastException 발생
+  - pickTwo의 반환값을 attributes에 저장하기 위해 String[]로 형변환하는 코드를 컴파일러가 자동 생성한다는 점을 놓쳤음
+  - Object[]는 String[]의 하위 타입이 아니므로 형변환은 실패
+
+##### 정상 동작 예시
+
+```java
+// annotation 사용
+@SafeVarargs
+static <T> List<T> flatten(List<? extends T>... lists) {
+    List<T> result = new ArrayList<>();
+    for (List<? extends T> list : lists) {
+        result.addAll(list);
+    }
+    return result;
+}
+
+// List 매개변수로 변환
+// List.of 메서드에도 @SafeVarargs 애너테이션이 달려 있으므로 가능
+@SafeVarargs
+static <T> List<T> flatten(List<List<? extends T>> lists) {
+    List<T> result = new ArrayList<>();
+    for (List<? extends T> list : lists) {
+        result.addAll(list);
+    }
+    return result;
+}
+
+// List.of 사용 방식
+// 결과 코드는 배열 없이 제네릭만 사용하므로 타입 안전
+static <T> List<T> pickTwo(T a, T b, T c) {
+    switch(ThreadLocalRandom.current().nextInt(3)) {
+        case 0: return List.of(a, b);
+        case 1: return List.of(a, c);
+        case 2: return List.of(b, c);
+    }
+    throw new AssertionError();
+}
+```
+
+- varargs 매개변수를 안전하게 사용하는 전형적인 예
+  - flatten 메서드는 임의 개수의 리스트를 인수로 받아 받은 순서대로 그 안의 모든 원소를 하나의 리스트로 옮겨 담아 반환
+  - @SafeVarargs 애너테이션이 달려 있으니 선언하는 쪽과 사용하는 쪽 모두에서 경고를 내지 않음
+
+##### @SafeVarargs 규칙
+
+> 재정의할 수 없는 메서드에만 달아야 한다. 재정의한 메서드도 안전할지는 보장할 수 없기 때문이다. 자바 8에서 이 애너테이션은 오직 정적 메서드와 final 인스턴스 메서드에만 붙일 수 있고, 자바 9부터는 private 인스턴스 메서드에도 허용된다.
+
+- varargs 매개변수 배열에 아무것도 저장하지 않는다
+- 그 배열(혹은 복제본)을 신뢰할 수 없는 코드에 노출하지 않는다
 
 <br>
 
