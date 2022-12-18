@@ -13,6 +13,8 @@
 > [ITEM 31. 한정적 와일드카드를 사용해 API 유연성을 높이라](#ITEM-31.-한정적-와일드카드를-사용해-API-유연성을-높이라)
 >
 > [ITEM 32. 제네릭과 가변인수를 함께 쓸 때는 신중하라](#ITEM 32.-제네릭과-가변인수를-함께-쓸-때는-신중하라)
+>
+> [ITEM 33. 타입 안전 이종 컨테이너를 고려하라](#ITEM-33.-타입-안전-이종-컨테이너를-고려하라)
 
 - 제네릭(generic)은 자바 5부터 사용(제네릭 지원 전에는 컬렉션에서 객체를 꺼낼 때마다 형변환 해야 했음)
 - 제네릭을 사용하면 컬렉션이 담을 수 있는 타입을 컴파일러에 알려주게 됨
@@ -906,6 +908,191 @@ static <T> List<T> pickTwo(T a, T b, T c) {
 - 그 배열(혹은 복제본)을 신뢰할 수 없는 코드에 노출하지 않는다
 
 <br>
+
+## ITEM 33. 타입 안전 이종 컨테이너를 고려하라
+
+##### 타입 안전 이종 컨테이너
+
+- 일반적으로 제네릭은 Set\<E>, Map\<K, V> 등의 컬렉션과 ThreadLocal\<T>, AtomicReference\<T> 등의 단일원소 컨테이너에서도 흔히 쓰임
+  - 여기서 매개변수화되는 대상은 (원소가 아닌) 컨테이너 자신
+  - 따라서 하나의 컨테이너에서 매개변수화할 수 있는 타입의 수가 제한됨
+  - 예로, Set에는 원소의 타입을 뜻하는 단 하나의 타입 매개변수만 있으면 되며, Map에는 키와 값의 타입을 뜻하는 2개만 필요한 것
+- 하지만, 데이터베이스의 행이 임의의 열을 갖는 것처럼 모든 열을 타입 안전하게 이용할 수 있게 할 수도 있음
+  - 컨테이너 대신 키를 매개변수화한 다음, 컨테이너에 값을 넣거나 뺄 때 매개변수화한 키를 함께 제공하면 됨
+  - 이렇게 하면 제네릭 타입 시스템의 값의 타입이 키와 같음을 보장해줄 것
+
+##### 예시
+
+- 각 타입의 Class 객체를 매개변수화한 키 역할로 사용
+
+  - 이 방식이 동작하는 이유는 class의 클래스가 제네릭이기 때문
+
+  - class 리터럴의 타입은 Class가 아닌 Class\<T>
+
+    예를 들어 String.class 타입은 Class\<String>
+
+  - 컴파일타임 타입 정보와 런타임 타입 정보를 알아내기 위해 메서드들이 주고받는 class 리털얼을 **타입 토큰(type token)**이라 함
+
+- Favorite
+
+  ```java
+  public class Favorite {
+      private Map<Class<?>, Object> favorites = new HashMap();
+  
+      public <T> void putFavorite(Class<T> type, T instance) {
+          favorites.put(Objects.requireNonNull(type), instance);
+      }
+      public <T> T getFavorite(Class<T> type) {
+          return type.cast(favorites.get(type));
+      }
+  }
+  
+  public static void main(String[] args) {
+      Favorites f = new Favorites();
+  
+      f.putFavorite(String.class, "Java");
+      f.putFavorite(Integer.class, 0xcafebabe);
+      f.putFavorite(Class.class, Favorite.class);
+  
+      String favoriteString = f.getFavorite(String.class);
+      int favoriteInteger = f.getFavorite(Integer.class);
+      Class<?> favoriteClass = f.getFavorite(Class.class);
+  
+      System.out.printf("%s %x %s%n", favoriteString, favoriteInteger, favoriteClass);
+  }
+  ```
+
+  - 출력 결과: Java cafebabe Favorites
+
+  - Favorite 인스턴스는 타입 안전
+
+    - String을 요청했는데, Integer를 반환하는 일은 절대 없음
+    - 모든 키의 타입이 제각각이라 일반적인 맵과 달리 여러 가지 타입의 원소를 담을 수 있음
+
+  - favorites의 타입은 Map<Class<?>, Object>로, 비한정적 와일드카드 타입이라 맵 안에 아무것도 넣을 수 없다고 생각할 수 있지만, 와일드카드 타입이 중첩(nested)되어 있음
+
+    - 맵이 아니라 키가 와일드카드 타입이므로, 모든 키가 서로 다른 매개변수화 타입일 수 있다는 뜻임
+    - 원소가 Class\<String>, Class\<Integer> 일 수 있음
+
+  - 값 타입은 단순히 Object인데, 이 맵은 키와 값 사이의 타입 관계를 보증하지 않는다는 뜻
+
+    - 모든 값이 키로 명시한 타입임을 보증하지 않음
+
+    - getFavorite() 메서드에서 favorite.get(type)은 Object이나, 리턴 값은 T이므로 형변환해야 함
+
+      - 따라서 getFavorite() 구현은 Class의 cast 메서드를 사용해 객체 참조를 Class가 가리키는 타입으로 동적 형변환함
+
+      - cast 메서드는 형변환 연산자의 동적 버전
+
+        ```java
+        public class Class<T> {
+            T cast(Object obj);
+        }
+        ```
+
+        - 이 메서드는 단순히 주어진 인수가 Class 객체가 알려주는 타입의 인스턴스인지를 검사한 다음, 맞다면 그 인수를 그대로 반환하고 아니면 ClassCastException을 던짐
+        - 클라이언트 코드가 깔끔히 컴파일된다면, getFavorite()이 호출하는 cast는 ClassCastException을 던지지 않을 것임을 보장
+
+  - 제약1
+
+    - 악의적인 클라이언트가 Class 객체를 (제네릭이 아닌) 로 타입으로 넘기면 Favorites 인스턴스의 안전성이 쉽게 깨짐(하지만 이렇게 짜여진 클라이언트 코드에서는 컴파일 시 비검사 경고가 뜰 것)
+
+      ```java
+      // runtime ClassCastException 발생
+      f.putFavorite((Class)Integer.class, "Integer의 인스턴스가 아님");
+      Integer favoriteInteger = f.getFavorite(Integer.class);
+      
+      // compile & run 모두 정상이나, 원래는 Integer 제네릭이므로 타입 안전하지 않음
+      HashSet<Integer> set = new HashSet<>();
+      ((HashSet)set).add("문자열");
+      ```
+
+    - 하지만 이러한 제약을 감수한다면 런타임 타입 안전성을 얻을 수 있음
+
+      (Favorites가 타입 불변식을 어기는 일이 없도록 보장하려면 아래와 같이 putFavorite aㅔ서드에서 인수로 주어진 instance의 타입이 type으로 명시한 타입과 같은지 확인)
+
+      ```java
+      // 동적 형변환으로 런타임 타입 안전성 확보
+      public <T> void putFavorite(Class<T> type, T instance) {
+          favorites.put(Objects.requireNonNull(type), type.cast(instance));
+      }
+      ```
+
+    - 예시
+
+      - java.util.Collections의 checkedSet, checkedList, checkedMap
+      - 위 정적 팩터리들은 컬렉션(혹은 맵)과 함께 1개(혹은 2개)의 Class 객체를 받음
+      - 이 메서드들은 모두 제네릭이라 Class 객체와 컬렉션의 컴파일타임 타입이 같음을 보장
+
+  - 제약2
+
+    - 실체화 불가 타입에는 사용할 수 없음
+
+    - String, String[]은 저장할 수 있어도, List\<String>은 저장할 수 없음
+
+      `List<String>.class`처럼 사용하려 하면 오류가 난다
+
+    - 이 제약에 대한 완벽히 만족스러운 우회로는 없음
+
+    - 슈퍼 타입 토큰(super type token)으로 해결하려는 시도도 있음
+
+      ```java
+      Favorites f = new Favorites();
+      
+      List<String> pets = Arrays.asList("개", "고양이", "앵무새");
+      
+      f.putFavorite(new TypeRef<List<String>>(){}, pets);
+      List<String> listOfStrings = f.getFavorites(new TypeRef<List<String>>(){});
+      ```
+
+##### 한정적 타입 토큰
+
+- Favorites가 사용하는 타입 토큰은 비한정적. 하지만 메서드들이 허용하는 타입을 제한하고 싶을 수 있는데 이 때는 한정적 타입 토큰을 활용하면 가능함
+- 한정적 타입 토큰이란, 단순히 한정적 타입 매개변수나 한정적 와일드카드를 사용하여 표현 가능한 타입을 제한하는 타입 토큰
+
+- 예시(애너테이션 API)
+
+  ```java
+  // java.lang.reflect.AnnotatedElement
+  
+  public interface AnnotatedElement {
+      
+      //대상 요소에 달려 있는 애너테이션을 런타임에 읽어 오는 기능을 한다
+      <T extends Annotation> T getAnnotation(Class<T> annotationType);
+  }
+  ```
+
+  - 리플렉션의 대상이 되는 타입들인 클래스(java.lang.Class\<T>), 메서드(java.lang.reflect.Method), 필드(java.lang.reflect.Field) 같이 프로그램 요소를 표현하는 타입들에서 구현함
+  - annotationType 인수는 애너테이션 타입을 뜻하는 한정적 타입 토큰임
+  - 토큰으로 명시한 타입의 애너테이션이 대상 요소에 달려 있다면 그 애너테이션을 반환하고, 없다면 null을 반환
+  - 즉, 애너테이션된 요소는 그 키가 애너테이션 타입인, 타입 안전 이종 컨테이너
+
+- class.asSubclass
+
+  - Class\<?> 타입의 객체가 있고, 이를 (getAnnotation처럼) 한정적 타입 토큰을 받는 메서드에 넘길 때, Class\<?extends Annotation>으로 형변환할 수도 있지만, 이 형벼환은 비검사이므로 컴파일 시 경고가 뜸
+
+  - Class 클래스는 이러한 형변환을 안전하게 (그리고 동적으로) 수행해주는 `asSubclass` 인스턴스 메서드를 제공
+
+  - 호출된 이스턴스 자신의 Class 객체를 인수가 명시한 클래스로 형변환(형변환된다는 것은 이 클래스가 인수로 명시한 클래스의 하위 클래스라는 뜻)
+
+  - 형변환에 성공하면 인수로 받은 클래스 객체를 반환하고, 실패하면 ClassCastException을 던짐
+
+  - 예시
+
+    ```java
+    static Annotation getAnnotation(AnnotatedElement element, String annotationTypeName) {
+        Class<?> annotationType = null; //비한정적 타입 토큰
+        try {
+            annotationType = Class.forName(annotationTypeName);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        return element.getAnnotation(annotationType.asSubclass(Annotation.class));
+    }
+    ```
+
+    - 컴파일 시점에는 타입을 알 수 없는 애너테이션을 asSubclass 메서드를 사용해 런타임에 읽어내는 예시
+    - 이 메서드는 오류나 경고 없이 컴파일 됨
 
 [위로](#제네릭)
 
