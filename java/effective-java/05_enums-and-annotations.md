@@ -1,6 +1,10 @@
 # 열거 타입과 애너테이션
 
 > [ITEM 34. int 상수 대신 열거 타입을 사용하라](#ITEM-34.-int-상수-대신-열거-타입을-사용하라)
+>
+> [ITEM 35. ordinal 메서드 대신 인스턴스 필드를 사용하라](#ITEM-35.-ordinal-메서드-대신-인스턴스-필드를-사용하라)
+>
+> [ITEM 36. 비트 필드 대신 EnumSet을 사용하라](#ITEM-36.-비트-필드-대신-EnumSet을-사용하라)
 
 ## ITEM 34. int 상수 대신 열거 타입을 사용하라
 
@@ -264,5 +268,123 @@ public enum Planet {
     - 추가하려는 메서드가 의미상 열거 타입에 속하지 않는다면 직접 만든 열거 타입이라도 이 방식을 적용하는 것이 좋음
     - 종종 쓰이지만 열거 타입 안에 포함할만큼 유용하지 않은 경우에도 좋음
 
+<br>
 
+## ITEM 35. ordinal 메서드 대신 인스턴스 필드를 사용하라
 
+##### ordinal() 메서드를 사용하는 잘못된 예
+
+```java
+//bad
+public enum Ensemble {
+    SOLO, DUET, TRIO, QUARTET, QUINTET,
+    SEXTET, SEPTET, OCTET, NONET, DECTET;
+
+    public int numberOfMusicians() {
+        return ordinal() + 1;
+    }
+}
+```
+
+- ordinal() 메서드는 해당 상수가 열거 타입에서 몇 번째 위치인지를 반환
+- 동작은 하지만 유지보수하기가 끔찍한 코드
+- 이미 사용중이거나 값이 같은 상수는 추가할 방법이 없고, 값을 중간에 비워둘 수 없는 등 코드가 깔끔하지 못할 뿐 아니라 쓰이지 않는 값이 많아질수록 실용성이 떨어짐
+
+##### 인스턴스 필드
+
+```java
+//good
+public enum Ensemble {
+    SOLO(1), DUET(2), TRIO(3), QUARTET(4), QUINTET(5),
+    SEXTET(6), SEPTET(7), OCTET(8), DOUBLE_QUARTET(8),
+    NONET(9), DECTET(10), TRIPLE_QUARTET(12);
+
+    private final int numberOfMusicians;
+
+    Ensemble(int size) {
+        this.numberOfMusicians = size;
+    }
+
+    public int getNumberOfMusicians() {
+        return numberOfMusicians;
+    }
+}
+```
+
+- 열거타입 상수에 연결된 값은 ordinal 메서드로 얻지 말고 인스턴스 필드에 저장하라
+- Enum API document
+  - 대부분의 프로그래머는 이 메서드를 쓸 일이 없다.
+  - 이 메서드는 EnumSet과 EnumMap과 같이 열거 타입 기반의 범용 자료구조에 쓸 목적으로 설계되었다.
+
+<br>
+
+## ITEM 36. 비트 필드 대신 EnumSet을 사용하라
+
+##### 비트 필드
+
+```java
+public class Text {
+    public static final int STYLE_BOLD = 1 << 0;  //1
+    public static final int STYLE_ITALIC = 1 << 1;  //2
+    public static final int STYLE_UNDERLINE = 1 << 2;  //3
+    public static final int STYLE_STRIKETHROUGH = 1 << 3;  //4
+    
+    //매개변수 styles는 0개 이상의 STYLE_ 상수를 비트별 OR한 값이다.
+    public void applyStyles(int styles) { ... }
+}
+```
+
+- 비트별 `OR`를 사용해 여러 상수를 하나의 집합으로 모을 수 있으며, 이렇게 만들어진 집합을 비트 필드(bit field)라 함
+
+- `text.applyStyles(STYLE_BOLD | STYLE_ITALIC)`
+
+  - 비트 필드를 사용하면 비트별 연산을 사용해 합집합과 교집합 같은 집합 연산을 효율적으로 수행 가능
+
+- 비트 필드 사용 시 단점
+
+  - 정수 열거 상수의 단점을 그대로 지님
+
+  - 비트 필드 값이 그대로 출력되면 단순한 정수 열거 상수를 출력할 때보다 해석하기 훨씬 어려움
+
+  - 비트 필드 하나에 녹아 있는 모든 원소를 순회하기도 까다로움
+
+  - 최대 몇 비트가 필요한지를 API 작성 시 미리 예측하여 적절한 타입(보통은 int or long)을 선택해야 함
+
+    (API를 수정하지 않고는 비트 수(32bit or 64bit)를 더 늘릴 수 없기 때문)
+
+- 예외적으로, 정수 상수보다 열거 타입을 선호하는 프로그래머 중에도 상수 집합을 주고 받아야 할 때는 여전히 비트 필드를 사용하기도 함
+
+##### EnumSet 클래스
+
+```java
+package java.util;
+
+public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
+    implements Cloneable, java.io.Serializable
+{
+    //... 
+}
+```
+
+- EnumSet 클래스는 열거 타입 상수의 값으로 구성된 집합을 효과적으로 표현
+
+- Set 인터페이스를 완벽히 구현, 타입 안전, 다른 Set 구현체와도 함께 사용 가능
+
+- 내부적으로 비트 벡터로 구현되어, 원소가 64개 이하라면 EnumSet 전체를 long 변수 하나로 표현하여 비트 필드에 비견되는 성능을 보여줌
+
+- removeAll, retainAll 같은 대량 작업은 (비트 필드를 사용할 때 쓰는 것과 같은) 비트를 효율적으로 처리할 수 있는 산술 연산을 써서 구현
+
+- 비트를 직접 다룰 때 겪는 오류 등 난해한 작업은 EnumSet이 모두 처리
+
+- 예시
+
+  ```java
+  public class Text {
+      public enum Style { BOLD, ITALIC, UNDERLINE, STRIKETHROUGH }
+      
+      //어떤 Set을 넘겨도 되나, EnumSet이 가장 좋다.
+      public void applyStyles(Set<Style> styles) { ... }
+  }
+  
+  //text.applyStyles(EnumSet.of(Style.BOLD, Style.ITALIC));
+  ```
