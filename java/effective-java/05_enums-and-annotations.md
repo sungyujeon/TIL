@@ -5,6 +5,8 @@
 > [ITEM 35. ordinal 메서드 대신 인스턴스 필드를 사용하라](#ITEM-35.-ordinal-메서드-대신-인스턴스-필드를-사용하라)
 >
 > [ITEM 36. 비트 필드 대신 EnumSet을 사용하라](#ITEM-36.-비트-필드-대신-EnumSet을-사용하라)
+>
+> [ITEM 37. ordinal 인덱싱 대신 EnumMap을 사용하라](#ITEM-37.-ordinal-인덱싱-대신-EnumMap을-사용하라)
 
 ## ITEM 34. int 상수 대신 열거 타입을 사용하라
 
@@ -388,3 +390,101 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
   
   //text.applyStyles(EnumSet.of(Style.BOLD, Style.ITALIC));
   ```
+
+<br>
+
+## ITEM 37. ordinal 인덱싱 대신 EnumMap을 사용하라
+
+##### ordinal을 사용한 잘못된 예
+
+```java
+//bad
+//ordinal의 값을 그 배열의 인덱스로 사용하는 잘못된 예
+public class Plant {
+
+    enum LifeCycle { ANNUAL, PERENNIAL, BIENNIAL }
+
+    final String name;
+    final LifeCycle lifeCycle;
+
+    Plant(String name, LifeCycle lifeCycle) {
+        this.name = name;
+        this.lifeCycle = lifeCycle;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+}
+
+// ordinal 사용의 잘못된 예
+Set<Plant>[] plantsByLifeCycle = (Set<Plant>[]) new Set[LifeCycle.values().length];
+
+for (int i = 0; i < plantsByLifeCycle.length; i++) {
+    plantsByLifeCycle[i] = new HashSet<>();
+}
+
+for (Plant p : garden) {
+    plantsByLifeCycle[p.lifeCycle.ordinal()].add(p);
+}
+
+//결과 출력
+for (int i = 0; i < plantsByLifeCycle.length; i++) {
+    System.out.printf("%s: %s%n", Plant.LifeCycle.values()[i], plantsByLifeCycle[i]);
+}
+```
+
+- 동작은 하지만 배열은 제네릭과 호환되지 않으니 비검사 형변환을 수행해야 하고 깔끔히 컴파일되지 않음
+- 배열은 각 인덱스의 의미를 모르니 출력 결과에 직접 레이블을 달아야 함
+- 정확한 정숫값을 사용한다는 것을 직접 보증해야 함(정수는 열거 타입과 달리 타입 안전하지 않음)
+
+<br>
+
+##### EnumMap 사용
+
+```java
+//EnumMap 사용
+//열거 타입을 key로 사용하도록 설계한 아주 빠른 Map 구현체
+Map<LifeCycle, Set<Plant>> plantsByLifeCycle = new EnumMap<LifeCycle, Set<Plant>>(Plant.LifeCycle.class);
+
+for (Plant.LifeCycle lc : Plant.LifeCycle.values()) {
+    plantsByLifeCycle.put(lc, new HashSet<>());
+}
+
+for (Plant p : garden) {
+    plantsByLifeCycle.get(p.lifeCycle).add(p);
+}
+System.out.println(plantsByLifeCycle);
+```
+
+- 더 짧고 명료하고 안전하고 성능도 비슷
+- 안전하지 않은 형변환은 쓰지 않고, 맵의 키인 열거 타입이 그 자체로 출력용 문자열 제공
+- 배열 인덱스를 계산하는 과정에서 오류가 날 가능성도 원천봉쇄
+- EnumMap의 생성자가 받는 키 타입의 Class 객체는 한정적 타입 토큰으로, 런타임 제네릭 타입 정보를 제공
+
+<br>
+
+##### Stream 사용1
+
+```java
+System.out.println(Arrays.stream(garden).collect(groupingBy(p -> p.lifeCycle)));
+```
+
+- EnumMap이 아닌 고유한 맵 구현체를 사용했기 때문에 EnumMap을 써서 얻은 공간과 성능 이점이 사라진다는 문제가 있음
+
+##### Stream 사용2
+
+```java
+System.out.println(Arrays.stream(garden)
+        .collect(groupingBy(p -> p.lifeCycle,
+            () -> new EnumMap<>(LifeCycle.class), toSet())));
+```
+
+- 매개변수 3개짜리 Collectors.groupingBy 메서드는 mapFactory 매개변수에 원하는 맵 구현체를 명시해 호출 가능
+- Stream을 사용하면 EnumMap만 사용했을 때와는 다르게 동작
+  - EnumMap 버전은 언제나 식물의 생애주기당 하나씩의 중첩 맵을 만듦
+  - 스트림 버전에서는 해당 생애주기에 속하는 식물이 있을 때만 만듦
+
+
+
