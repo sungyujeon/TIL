@@ -7,6 +7,8 @@
 > [ITEM 36. 비트 필드 대신 EnumSet을 사용하라](#ITEM-36.-비트-필드-대신-EnumSet을-사용하라)
 >
 > [ITEM 37. ordinal 인덱싱 대신 EnumMap을 사용하라](#ITEM-37.-ordinal-인덱싱-대신-EnumMap을-사용하라)
+>
+> [ITEM 38. 확장할 수 있는 열거 타입이 필요하면 인터페이스를 사용하라](#ITEM-38.-확장할-수-있는-열거-타입이-필요하면-인터페이스를-사용하라)
 
 ## ITEM 34. int 상수 대신 열거 타입을 사용하라
 
@@ -486,5 +488,97 @@ System.out.println(Arrays.stream(garden)
   - EnumMap 버전은 언제나 식물의 생애주기당 하나씩의 중첩 맵을 만듦
   - 스트림 버전에서는 해당 생애주기에 속하는 식물이 있을 때만 만듦
 
+<br>
 
+## ITEM 38. 확장할 수 있는 열거 타입이 필요하면 인터페이스를 사용하라
 
+##### 확장할 수 없는 열거 타입
+
+- 열거 타입은 거의 모든 상황에서 타입 안전 열거 패턴(typesafe enum pattern) 보다 우수함
+
+- 예외는 타입 안전 열거 패턴은 확장 가능하나, 열거 타입은 확장 불가능
+
+- 하지만 대부분의 상황에서 열거 타입을 확장하는 것은 좋지 않은 생각
+
+##### 확장 가능한 열거 타입(인터페이스 구현)
+
+- 확장할 수 있는 열거 타입이 어울리는 쓰임이 최소 하나 존재(e.g. 연산 코드)
+
+- 이따금 API가 제공하는 기본 연산 외에 사용자 확장 연산을 추가할 수 있도록 열어줘야 할 때가 있음
+
+- 인터페이스를 정의하고 열거 타입이 이 인터페이스를 구현하게 하는 방법
+
+- 예시
+  
+  ```java
+  public interface Operation {
+      double apply(double x, double y);
+  }
+
+  enum BasicOperation implements Operation {
+      PLUS("+") {
+          public double apply(double x, double y) { return x + y; }
+      },
+      MINUS("-") {
+          public double apply(double x, double y) { return x - y; }
+      },
+      TIMES("*") {
+          public double apply(double x, double y) { return x * y; }
+      },
+      DIVIDE("/") {
+          public double apply(double x, double y) { return x / y; }
+      };
+
+      private final String symbol;
+
+      BasicOperation(String symbol) {
+          this.symbol = symbol;
+      }
+  }
+  ```
+
+  - 열거 타입인 BasicOperation은 확장할 수 없지만 인터페이스인 Operation은 확장할 수 있고, 이 인터페이스를 연산의 타입으로 사용하면 됨
+  
+  - 이를 통해 Operation을 구현한 또 다른 열거 타입을 정의해 기본 타입인 BasicOperation을 대체할 수 있음
+
+    ```java
+    enum ExtendedOperation implements Operation {
+        EXP("^") {
+            public double apply(double x, double y) { return Math.pow(x, y); }
+        },
+        REMAINDER("%") {
+            public double apply(double x, double y) { return x % y; }
+        };
+
+        private final String symbol;
+
+        ExtendedOperation(String symbol) {
+            this.symbol = symbol;
+        }
+    }
+    ```
+
+    - Operation 인터페이스를 사용하도록 작성되어 있으면, 열거 타입에 따로 추상 메서드로 선언하지 않고 사용할 수 있음
+
+##### 인터페이스 확장 열거 타입의 단점
+
+- 열거 타입끼리 구현을 상속할 수 없음
+
+- 아무 상태에도 의존하지 않는 경우에는 default 구현을 이용해 인터페이스에 추가하는 방법으로 해결
+
+- 공유하는 기능이 많다면 별도의 도우미 클래스나 정적 도우미 메서드로 분리하는 방식으로 코드 중복 없앨 수 있음
+
+- 자바 라이브러리에서의 사용 예시
+  
+  ```java
+  package java.nio.file;
+
+  /**
+   * Defines the options as to how symbolic links are handled.
+   *
+   * @since 1.7
+   */
+  public enum LinkOption implements OpenOption, CopyOption { ... }
+  ```
+
+  - OpenOption, CopyOption 인터페이스를 구현
