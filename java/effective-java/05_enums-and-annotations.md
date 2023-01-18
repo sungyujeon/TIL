@@ -9,6 +9,12 @@
 > [ITEM 37. ordinal 인덱싱 대신 EnumMap을 사용하라](#ITEM-37.-ordinal-인덱싱-대신-EnumMap을-사용하라)
 >
 > [ITEM 38. 확장할 수 있는 열거 타입이 필요하면 인터페이스를 사용하라](#ITEM-38.-확장할-수-있는-열거-타입이-필요하면-인터페이스를-사용하라)
+>
+> [ITEM 39. 명명 패턴보다 애너테이션을 사용하라](#ITEM-39.-명명-패턴보다-애너테이션을-사용하라)
+>
+> [ITEM 40. @Override 애너테이션을 일관되게 사용하라](#ITEM-40.-@Override-애너테이션을-일관되게-사용하라)
+>
+> [ITEM 41. 정의하려는 것이 타입이라면 마커 인터페이스를 사용하라](#ITEM-41.-정의하려는-것이-타입이라면-마커-인터페이스를-사용하라)
 
 ## ITEM 34. int 상수 대신 열거 타입을 사용하라
 
@@ -514,7 +520,7 @@ System.out.println(Arrays.stream(garden)
   public interface Operation {
       double apply(double x, double y);
   }
-
+  
   enum BasicOperation implements Operation {
       PLUS("+") {
           public double apply(double x, double y) { return x + y; }
@@ -528,9 +534,9 @@ System.out.println(Arrays.stream(garden)
       DIVIDE("/") {
           public double apply(double x, double y) { return x / y; }
       };
-
+  
       private final String symbol;
-
+  
       BasicOperation(String symbol) {
           this.symbol = symbol;
       }
@@ -549,9 +555,9 @@ System.out.println(Arrays.stream(garden)
         REMAINDER("%") {
             public double apply(double x, double y) { return x % y; }
         };
-
+    
         private final String symbol;
-
+    
         ExtendedOperation(String symbol) {
             this.symbol = symbol;
         }
@@ -572,7 +578,7 @@ System.out.println(Arrays.stream(garden)
   
   ```java
   package java.nio.file;
-
+  
   /**
    * Defines the options as to how symbolic links are handled.
    *
@@ -582,3 +588,217 @@ System.out.println(Arrays.stream(garden)
   ```
 
   - OpenOption, CopyOption 인터페이스를 구현
+
+<br>
+
+## ITEM 39. 명명 패턴보다 애너테이션을 사용하라
+
+##### 명명 패턴
+
+- 예를 들어 JUnit3에서는 테스트 메서드 이름을 test로 시작하게 함
+- 단점
+  - 오타가 나면 안됨
+  - 올바른 프로그램 요소만 사용되리라 보장할 수 없음
+  - 프로그램 요소를 매개변수로 전달할 마땅한 방법이 없음
+
+##### Annotation
+
+```java
+import java.lang.annotation.*;
+
+/**
+ * 테스트 메서드임을 선언하는 애너테이션이다.
+ * 매개변수 없는 정적 메서드 전용이다.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Test {}
+```
+
+- meta-annotation
+  - `@Retention`, `@Target`  등 애너테이션 선언에 다는 애너테이션
+  - Retention: 애너테이션의 유지 주기
+  - Target: 애너테이션 적용 타겟 요소
+
+<br>
+
+```java
+public class Sample {
+    @Test
+    static void m1() {}
+    
+    //...
+}
+```
+
+- marker annotation
+  - 아무 매개변수 없이 단순히 대상에 marking
+  - 프로그래머가 Test 이름에 오타를 내거나 메서드 선언 외의 프로그램 요소에 달면 컴파일 오류를 냄
+
+<br>
+
+```java
+public class RunTests {
+
+    public static void main(String[] args) {
+        int tests = 0;
+        int passed = 0;
+        Class<?> testClass = Class.forName(args[0]);
+        for (Method m : testClass.getDeclaredMethods()) {
+            if (m.isAnnotationPresent(Test.class)) {
+                tests++;
+                try {
+                    m.invoke(null);
+                    passed++;
+                } catch (InvocationTargetException wrappedExc) {
+                    Throwable exc = wrappedExc.getCause();
+                    System.out.println(m + " 실패: " + exc);
+                } catch (Exception exc) {
+                    System.out.println("잘못 사용한 @ㅆㄷㄴㅅ: " + m);
+                }
+            }
+        }
+    }
+}
+```
+
+- `@Test` 애너테이션이 관심 있는 프로그램에게 추가 정보를 주고 특별한 처리를 할 기회를 줌
+
+<br>
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Test {
+    Class<? extends Throwable>[] value();
+}
+
+@Test({ IndexOutofBoundsException.class, NullPointerException.class })
+public void doublyBad() {
+    List<String> list = new ArrayList<>();
+  
+    list.addAll(5, null);  // IndexOutofBoundsException 발생
+}
+```
+
+- 매개변수 타입을 배열로 선언하면  여러 개를 받게할 수도 있음
+
+<br>
+
+```java
+//반복 가능한 애너테이션
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Repeatable(ExceptionTestContainer.class)
+public @interface ExceptionTest {
+    Class<? extends Throwable> value();
+}
+
+//컨테이너 애너테이션
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ExceptionTestContainer {
+    ExceptionTeest[] value();
+}
+
+//main
+@ExceptionTest(IndexOutofBoundsException.class)
+@ExceptionTest(NullPointerException.class)
+static void doublyBad() { ... }
+```
+
+- 반복가능한 애너테이션 처리 가능
+- `getAnnotationsByType` 메서드는 이 둘을 구분하지 않아서 반복 가능한 애너테이션과 그 컨테이너 애너테이션 모두 가져옴
+- `isAnnotationPresent` 메서드는 둘을 명확히 구분
+- 단점: 코드 양이 늘어나고 처리 코드가 복잡해져 오류 날 가능성이 커질 수 있음
+
+<br>
+
+## ITEM 40. @Override 애너테이션을 일관되게 사용하라
+
+- `@Override` 사용 시 상위 타입의 메서드를 재정의했음을 뜻하고, 일관되게 사용하면 여러 악명 높은 버그들을 예방해줌
+
+- 예시
+
+  ```java
+  public class Bigram {
+  
+      private final char first;
+      private final char second;
+  
+      public Bigram(char first, char second) {
+          this.first = first;
+          this.second = second;
+      }
+      
+      // override 사용하지 않음
+      // override를 재정의하지 않고 overloading함
+      public boolean equals(Bigram b) {
+          return b.first == first && b.second == second;
+      }
+  		
+     // override 미사용, 컴파일 에러
+      public int hashCode() {
+          return 31 * first + second;
+      }
+  }
+  ```
+
+- 상위 클래스의 메서드를 재정의하려는 모든 메서드에 `@Override` 애너테이션을 달아야 함
+
+- 인터페이스의 default method를 재정의할 때도 사용
+
+- 일관되게 사용한다면 시그니처가 올바른지 재차 확신할 수 있음
+
+  - 예를 들어 Set 인터페이스는 Collection 인터페이스를 확장했지만 새로 추가한 메서드는 없음
+  - 모든 메서드 선언에 `@Override` 애너테이션을 달아 실수로 추가한 메서드가 없음을 보장함
+
+- 예외(단 한가지)
+  - 구체 클래스에서 상위 클래스의 추상메서드를 재정의할 때는 굳이 달지 않아도 됨
+  - 하지만 모든 재정의 메서드에 일관되게 붙여주는 것도 좋음
+
+<br>
+
+## ITEM 41. 정의하려는 것이 타입이라면 마커 인터페이스를 사용하라
+
+##### marker interface
+
+- 아무 메서드도 담고 있지 않고, 단지 자신을 구현하는 클래스가 특정 속성을 가짐을 표시해주는 인터페이스
+
+  - Serializable 인터페이스가 좋은 예
+
+    ```java
+    package java.io;
+    
+    public interface Serializable {
+    }
+    ```
+
+    - Serializable은 자신을 구현한 클래스의 인스턴스는 ObjectOutputStream을 통해 serialize 할 수 있다고 알려줌
+
+- 마커 애너테이션이 등장하면서 마커 인터페이스는 구식이 되었다는 말도 있지만 사실이 아님
+
+- 마커 인터페이스의 장점
+
+  - 마커 인터페이스를 구현한 클래스의 인스턴스들을 구분하는 타입으로 쓸 수 있음(마커 애너테이션은 안됨)
+
+    - 마커 인터페이스도 어엿한 타입이다! 
+    - 런타임에 발견될 오류를 컴파일타임에 잡을 수 있다
+
+  - 적용 대상을 더 정밀하게 지정할 수 있음
+
+    - 마킹하고 싶은 클래스에서만 인터페이스를 구현하면 됨
+
+    - 마커 애너테이션은 적용할 수 있는 타입을 더 세밀하게 제한하지 못함
+
+      (Target을 Element.TYPE으로 선언하면 모든 타입에 달 수 있음)
+
+- 마커 애너테이션이 더 나은 점
+  - 거대한 애너테이션 시스템의 지원을 받음
+  - 애너테이션을 적극 활용하는 프레임워크에서는 마커 애너테이션을 쓰는 쪽이 일관성을 지키는 데 유리할 수 있음
+
+##### marker interface vs marker annotation
+
+- 어떤 것을 써야 하는지 혼란스러울 수 있음
+- 클래스와 인터페이스 외의 프로그램 요소(모듈, 패키지, 필드, 지역변수 등)에 마킹해야 할 때는 애너테이션을 쓸 수밖에 없음
+- **마킹이 된 객체를 매개변수로 받는 메서드를 작성할 일**이 있으면 마커 인터페이스를 쓰면 됨
